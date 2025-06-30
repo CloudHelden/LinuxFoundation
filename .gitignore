@@ -1,0 +1,110 @@
+# Security - NEVER commit these
+*.key
+*.pem
+*.cert
+*.crt
+*.p12
+*.pfx
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+.ssh/
+.gnupg/
+
+# Environment and secrets
+.env
+.env.*
+*.env
+!.env.example
+secrets/
+credentials/
+*_token
+*_secret
+*.password
+
+# API Keys and tokens
+*api_key*
+*apikey*
+*access_token*
+.htpasswd
+.netrc
+
+# Cloud provider credentials
+.aws/
+.gcp/
+.azure/
+*.json
+!package*.json
+!tsconfig*.json
+
+# System files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.*.swp
+
+# IDE
+.vscode/
+.idea/
+*.iml
+.project
+.settings/
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+*.db
+logs/
+*.dump
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+*.temp
+
+# OS generated
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+.Python
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+out/
+target/
+
+# Documentation builds
+site/
+_site/
+.jekyll-cache/
+
+# Student submissions (if needed)
+submissions/
+grading/
+
+# Instructor only materials
+instructor-notes/
+solutions-private/
+exams-private/
