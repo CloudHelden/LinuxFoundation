@@ -311,9 +311,7 @@ Filesystem      Size  Used Avail Use% Mounted on
 - [VirtualBox Manual](https://www.virtualbox.org/manual/)
 
 ### Notfall-Kontakte:
-- Kurs-Forum: [TBD]
-- Dozenten-E-Mail: [Ihre E-Mail]
-- Sprechzeiten: [Ihr Zeitplan]
+- Kurs-Forum: Slack
 
 ---
 
