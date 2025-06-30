@@ -227,28 +227,79 @@ curl localhost | head -10
 
 ### Aufgabe 3.3: Weitere Seiten hinzufügen
 ```bash
-# Info-Seite erstellen
+# Info-Seite mit aktuellen Systemdaten erstellen
+# Da HTML keine Shell-Befehle ausführen kann, generieren wir die Seite dynamisch
+sudo bash -c 'cat > /var/www/html/info.html << EOF
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Server Information</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f4f4f4; }
+        .container { background: white; padding: 30px; border-radius: 10px; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        .back-link { display: inline-block; margin-top: 20px; color: #007acc; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Server-Details</h1>
+        <pre>
+Hostname: $(hostname)
+Betriebssystem: $(lsb_release -d | cut -f2)
+Uptime: $(uptime -p)
+Aktuelles Datum: $(date)
+
+Festplattenspeicher:
+$(df -h / | tail -1)
+
+Arbeitsspeicher:
+$(free -h | grep -E "^(Mem|Speicher)")
+
+Netzwerk-Interfaces:
+$(ip -4 addr show | grep -E "^[0-9]|inet " | head -10)
+        </pre>
+        <a href="/" class="back-link">← Zurück zur Hauptseite</a>
+    </div>
+</body>
+</html>
+EOF'
+```
+
+**Alternative: Seite mit nano erstellen (statische Variante):**
+```bash
+# Falls Sie die Seite manuell bearbeiten möchten
 sudo nano /var/www/html/info.html
 ```
 
-**Inhalt für info.html:**
+**Inhalt für manuelle Bearbeitung:**
 ```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <title>Server Information</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f4f4f4; }
+        .container { background: white; padding: 30px; border-radius: 10px; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; }
+    </style>
 </head>
 <body>
-    <h1>Server-Details</h1>
-    <pre>
-# Diese Informationen mit Linux-Befehlen gesammelt:
-Hostname: $(hostname)
-Uptime: $(uptime)
-Disk Usage: $(df -h /)
-Memory: $(free -h)
-    </pre>
-    <p><a href="/">← Zurück zur Hauptseite</a></p>
+    <div class="container">
+        <h1>📊 Server-Details</h1>
+        <p><strong>Hinweis:</strong> Diese Seite zeigt statische Informationen. 
+        Für aktuelle Systemdaten verwenden Sie den obigen Befehl.</p>
+        <pre>
+Hostname: [Wird beim Erstellen der Seite eingetragen]
+Betriebssystem: Ubuntu 22.04 LTS
+Uptime: [Aktuell beim Erstellen der Seite]
+Festplattenspeicher: [Wird beim Erstellen eingetragen]
+Arbeitsspeicher: [Wird beim Erstellen eingetragen]
+        </pre>
+        <a href="/">← Zurück zur Hauptseite</a>
+    </div>
 </body>
 </html>
 ```
@@ -462,10 +513,36 @@ sudo systemctl reload nginx
 ```bash
 # Nginx Status Page aktivieren
 sudo nano /etc/nginx/sites-available/default
-# Fügen Sie location /nginx_status hinzu
+```
 
-# Monitoring mit curl
+**Fügen Sie diese location-Block in den server-Bereich ein:**
+```nginx
+location /nginx_status {
+    stub_status on;
+    access_log off;
+    allow 127.0.0.1;
+    deny all;
+}
+```
+
+**Nginx-Konfiguration testen und neu laden:**
+```bash
+# Konfiguration testen
+sudo nginx -t
+
+# Konfiguration neu laden
+sudo systemctl reload nginx
+
+# Monitoring testen
 curl localhost/nginx_status
+```
+
+**Erwartete Ausgabe:**
+```
+Active connections: 1 
+server accepts handled requests
+ 2 2 2 
+Reading: 0 Writing: 1 Waiting: 0 
 ```
 
 ---
