@@ -174,18 +174,10 @@ Lege das Python-CLI-Tool **bquiz** an, das dich interaktiv durch jede Frage füh
 
 ## 3. Quiz starten
 
-Führe das Quiz für alle 30 Fragen-Items nacheinander aus. Du kannst alle Dateien und Verzeichnisse als Argumente übergeben:
+Führe das Quiz für alle 30 Fragen-Items nacheinander aus.
 
 ```bash
 bquiz frage1 frage2 frage3 ... frage30
-```
-
-Oder automatisiert mit einer Schleife:
-
-```bash
-for i in $(seq 1 30); do
-  bquiz frage$i
-done
 ```
 
 Das Tool zeigt dir für jede Frage:
