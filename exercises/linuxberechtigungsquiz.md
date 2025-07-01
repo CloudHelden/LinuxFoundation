@@ -61,6 +61,7 @@ Alle 30 Fragen-Items (`frage1` bis `frage30`) wurden nun in deinem aktuellen Ver
 ## 2. Quiz-CLI einrichten
 
 Lege das Python-CLI-Tool **bquiz** an, das dich interaktiv durch jede Frage führt.
+@andy Danke dir für den Hinweis
 
 1. Erstelle eine Datei namens `bquiz` mit folgendem Inhalt:
 
@@ -85,16 +86,20 @@ Lege das Python-CLI-Tool **bquiz** an, das dich interaktiv durch jede Frage füh
            ("rw-", "3) Lesen & Schreiben"),
            ("r-x", "4) Lesen & Ausführen"),
            ("rwx", "5) Lesen, Schreiben & Ausführen"),
+           ("rwx", "5) Lesen, Schreiben & Ausführen"),
+           ("--x", "6) nur Ausführen"),
+           ("-w-", "7) nur Schreiben"),
+           ("-wx", "8) Schreiben & Ausführen"),
        ]
        print(f"{who}:")
        for _, label in options:
            print(f"   {label}")
-       sel = input("→ Nummer eingeben [1–5]: ").strip()
+       sel = input("→ Nummer eingeben [1–8]: ").strip()
        mapping = {str(i+1): code for i, (code, _) in enumerate(options)}
        if sel in mapping:
            return mapping[sel]
        else:
-           print("Ungültige Eingabe, bitte 1–5 wählen.\n")
+           print("Ungültige Eingabe, bitte 1–8 wählen.\n")
            return choose_perm_semantic(who)
 
    def quiz(path):
@@ -138,7 +143,7 @@ Lege das Python-CLI-Tool **bquiz** an, das dich interaktiv durch jede Frage füh
        # 5) chmod-Oktalzahl mit Referenz
        octal = format(mode_raw & 0o777, '03o')
        chmod_str = '0' + octal
-       print(f"5) {mode_str}  Gebe die chmod-Oktalzahl an (mit führender 0), z.B. {chmod_str}")
+       print(f"5) {mode_str}  Gebe die chmod-Oktalzahl an (mit führender 0), z.B. 0644")
        ans5 = input("→ ").strip()
        if ans5 == chmod_str:
            print("✅ Richtig!\n")
