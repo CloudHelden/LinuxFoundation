@@ -61,7 +61,7 @@ Alle 30 Fragen-Items (`frage1` bis `frage30`) wurden nun in deinem aktuellen Ver
 ## 2. Quiz-CLI einrichten
 
 Lege das Python-CLI-Tool **bquiz** an, das dich interaktiv durch jede Frage führt.
-@andy Danke dir für den Hinweis
+@andy Danke dir für die Updates!
 
 1. Erstelle eine Datei namens `bquiz` mit folgendem Inhalt:
 
