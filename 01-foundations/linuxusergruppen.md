@@ -35,7 +35,14 @@ graph TD
 | **Service**      | 500–999 oder >1000 | var.    | `/sbin/nologin`    | postgres (Fedora) |
 | **Benutzer**     | ≥ 1000             | `/home` | `/bin/bash` (std.) | emma              |
 
-> **Merksatz:** UID 0 sieht alles, UID < 100 redet wenig, UID ≥ 1000 arbeitet kreativ.
+
+## 2.1 · Set-GID-Bit auf Verzeichnisse (5 min)
+
+| Aktion                         | Befehl                          | Wirkung                                                                                 |
+|--------------------------------|---------------------------------|-----------------------------------------------------------------------------------------|
+| Set-GID auf Verzeichnis setzen | `sudo chmod g+s <Verzeichnis>` | Neu angelegte Dateien erben die GID des Verzeichnisses und erhalten so gruppenweite Rechte |
+
+> **Hinweis:** In der `ls -l`-Ausgabe erscheint dann ein kleines `s` im Gruppen-bit, z. B. `drwxr-s r-x`.
 
 **Primäre & sekundäre Gruppen**
 
@@ -75,7 +82,7 @@ Tipp: Nutze `last -F | head` für die letzten 10 Events mit Zeitstempel.
 
 ---
 
-## 5 · Mini‑Übung (20 min)
+## 5 · Mini‑Übung (2 min)
 
 > *Keine Änderungen am System! Nur lesen & beobachten.*
 
@@ -98,7 +105,6 @@ Tipp: Nutze `last -F | head` für die letzten 10 Events mit Zeitstempel.
 
 * Warum ist `/etc/passwd` für alle lesbar, `/etc/shadow` aber nicht?
 * Welche Risiken birgt ein Service‑Account mit gültiger Bash‑Shell?
-* Wann würdest du einem Dienst kein eigenes Konto geben?
 
 ---
 
@@ -148,7 +154,7 @@ Tipp: Nutze `last -F | head` für die letzten 10 Events mit Zeitstempel.
 
 ## 4. Set-GID auf Verzeichnis anwenden
 
-**Aufgabe:** Erstelle ein Verzeichnis `/srv/team_docs` und aktiviere das Set-GID-Bit (chmod g+s).
+**Aufgabe:** Erstelle ein Verzeichnis `/srv/team_docs` und aktiviere das Set-GID-Bit (chmod g+s ).
 **Prüfen:** Wie kannst du zeigen, dass neu erstellte Dateien im Verzeichnis die Gruppen-ID von `/srv/team_docs` geerbt haben?
 
 ## 5. Gruppe umbennen & löschen
@@ -157,3 +163,50 @@ Tipp: Nutze `last -F | head` für die letzten 10 Events mit Zeitstempel.
 **Aufräumen:** Lösche abschließend sowohl die Gruppe **helpdesk** als auch den Dummy-Benutzer.
 
 > **Hinweis:** Nutzt für alle Befehle `sudo` und kontrolliert jeden Schritt mit `getent`, `id`, `groups` oder `ls -l`. Viel Erfolg!
+
+## 9 · Schatten im Tänzelnden Pony (40 min)
+![Frodo](frodo.png)
+
+Tipp: versuchts mal ohne ChatGPT und nur mit Google
+
+> **Filmszene:** Regen peitscht gegen die Schindeln, als Frodo und seine Gefährten das lichtdurchflutete Schankzimmer des **Tänzelnden Pony** betreten. Butterblume wischt sich die Hände an der Schürze ab und ruft: »Hobbits!«, woraufhin neugierige Köpfe hochfahren. In einer dunklen Ecke aber glimmt bereits das rote Auge des Feindes …
+
+### Setup – das Wirtshaus füllt sich
+
+* **Zwei Gestalten**: Lege frische Konten für **Frodo** und **Sauron** an.
+* **Die Runde der Zecher**: Schaffe die Gruppe **wirtshaus** und lege Samwise, Merry, Pippin und ein paar unbekannte Halblinge samt Sauron dort an.
+* **Der Eine Ring**: Erstelle im Heimverzeichnis Frodos eine Datei namens `ring`, die nur ihm gehört. Und schreibe den Text **„One Ring to rule them all“** hinein.
+
+> *Gandalf hatte gewarnt:* »Hüte dich vor neugierigen Blicken – sogar Bier kann die Zunge lösen.«
+
+---
+
+### 1 · Frodo betritt das Wirtshaus
+
+Füge Frodo der fröhlichen Truppe in **wirtshaus** hinzu und vergewissere dich – etwa mit einem Blick in die Gruppendatei –, dass er nun am Schank­tisch sitzt.
+
+### 2 · Der erste Griff nach dem Ring
+
+Im Gewirr der Musik rutscht Frodo der Ring an den Finger. 
+
+* Schaffe eine neue Geheimbund‑Gruppe **ring**. 
+* Übertrage die *Besitzrechte* der Datei `ring` auf diese Bruderschaft und erlaube ausschließlich ihren Mitgliedern das Lesen. 
+* Nimm Frodo in die Gruppe auf – er verschwindet für die Gäste förmlich aus dem Blickfeld.
+
+> *Frodo hört ein Flüstern:* »Ein Ring, sie zu knechten …«
+
+### 3 · Das Auge entdeckt ihn
+
+Der Schatten in der Ecke richtet sich auf – Sauron verspürt die Präsenz des Rings.
+\* Füge **Sauron** derselben Gruppe **ring** hinzu, damit auch er den verführerischen Glanz erblickt. \* Prüfe aus Saurons Perspektive mit cat, dass die verborgene Datei Ring nun lesbar ist.
+
+### 4 · Der Schreck und die Entsagung
+
+Frodo schreckt auf, zieht den Ring hastig ab. Entziehe der Datei `ring` die Gruppenzugehörigkeit zu **ring** oder ersetze sie durch Frodos Privatgruppe. 
+ Entferne Sauron wieder aus der Geheimgilde. 
+
+### 5 · Schweigen des Feindes
+
+Ein letzter Test aus Saurons Sicht sollte nun ins Leere laufen – kein *`cat`* enthüllt mehr das Geheimnis. Das Auge schließt sich, und das Wirtshaus kehrt zum Klang der Fiedel zurück.
+
+> **Ergebnis:** Wie im Film erweckt Frodo mit einem unbeabsichtigten Schritt die Aufmerksamkeit des Feindes – doch rechtzeitig gelingt es ihm, den Blick Saurons wieder zu trüben.
