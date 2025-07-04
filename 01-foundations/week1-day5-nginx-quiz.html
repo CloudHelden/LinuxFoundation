@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nginx Virtual Hosts - Interaktives Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #00695c 0%, #00897b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-width: 900px;
+            width: 90%;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .quiz-header h1 {
+            color: #00695c;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .nginx-logo {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .question-container {
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .question-container.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .question {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: #00695c;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+
+        .options {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover {
+            background: #e0f2f1;
+            border-color: #00695c;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: #e0f2f1;
+            border-color: #00897b;
+        }
+
+        .option.correct {
+            background: #e8f5e9;
+            border-color: #4CAF50;
+        }
+
+        .option.incorrect {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        .option-letter {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #00695c;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        .option.correct .option-letter {
+            background: #4CAF50;
+        }
+
+        .option.incorrect .option-letter {
+            background: #f44336;
+        }
+
+        .code-option {
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 5px;
+            font-size: 0.9em;
+            overflow-x: auto;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-show {
+            background: #ff9800;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-show:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .btn-next {
+            background: #00897b;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-next:hover {
+            background: #00695c;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 137, 123, 0.3);
+        }
+
+        .btn-prev {
+            background: #757575;
+            color: white;
+        }
+
+        .btn-prev:hover {
+            background: #616161;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .explanation {
+            background: #e0f2f1;
+            border-left: 4px solid #00897b;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .explanation.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .explanation h4 {
+            color: #00695c;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .results {
+            text-align: center;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        .score {
+            font-size: 3em;
+            color: #4CAF50;
+            margin: 20px 0;
+        }
+
+        .emoji {
+            font-size: 4em;
+            margin: 20px 0;
+        }
+
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-screen h2 {
+            color: #00695c;
+            margin-bottom: 20px;
+        }
+
+        .topic-list {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .topic-list h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .topic-list ul {
+            list-style-position: inside;
+            color: #555;
+        }
+
+        .topic-list li {
+            margin: 8px 0;
+        }
+
+        .btn-start {
+            background: #4CAF50;
+            color: white;
+            font-size: 1.3em;
+            padding: 15px 40px;
+            margin-top: 20px;
+        }
+
+        .btn-start:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .practical-note {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .practical-note strong {
+            color: #e65100;
+        }
+
+        @media (max-width: 600px) {
+            .quiz-container {
+                padding: 20px;
+            }
+
+            .quiz-header h1 {
+                font-size: 1.8em;
+            }
+
+            .question {
+                font-size: 1.1em;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="timer" id="timer">00:00</div>
+        
+        <div class="quiz-header">
+            <div class="nginx-logo">🌐</div>
+            <h1>Nginx Virtual Hosts Quiz</h1>
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="start-screen">
+            <h2>Willkommen zum Nginx Virtual Hosts Quiz!</h2>
+            <p>Testen Sie Ihr Wissen über Webserver-Konfiguration</p>
+            
+            <div class="topic-list">
+                <h3>📚 Themen:</h3>
+                <ul>
+                    <li>Virtual Hosts (Server Blocks) Konzepte</li>
+                    <li>Nginx Konfiguration und Syntax</li>
+                    <li>DNS und Hosts-Datei</li>
+                    <li>Sicherheit und Berechtigungen</li>
+                    <li>Troubleshooting und Best Practices</li>
+                </ul>
+            </div>
+
+            <div class="practical-note">
+                <strong>Hinweis:</strong> Dieses Quiz basiert auf der praktischen Übung mit der learnlinux GmbH und ihren drei Websites.
+            </div>
+
+            <button class="btn-start" onclick="startQuiz()">Quiz starten! 🚀</button>
+        </div>
+
+        <!-- Quiz Content -->
+        <div id="quiz-content" style="display: none;">
+            <!-- Questions will be inserted here -->
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results" class="results">
+            <h2>Quiz abgeschlossen! 🎉</h2>
+            <div class="emoji" id="result-emoji"></div>
+            <div class="score" id="final-score">0/0</div>
+            <p id="result-message"></p>
+            <button class="btn-start" onclick="location.reload()">Nochmal spielen</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Was ist ein Virtual Host in Nginx?",
+                options: [
+                    "Eine virtuelle Maschine für Webseiten",
+                    "Ein Mechanismus um mehrere Websites auf einem Server zu hosten",
+                    "Ein Backup-Server für Ausfälle",
+                    "Eine Verschlüsselungsmethode"
+                ],
+                correct: 1,
+                explanation: "Virtual Hosts (in Nginx 'Server Blocks' genannt) ermöglichen es, mehrere Websites mit unterschiedlichen Domains auf einem einzigen Server zu betreiben. Jede Website kann ihre eigene Konfiguration, Logs und Document Root haben."
+            },
+            {
+                question: "Wo sollten Nginx Site-Konfigurationsdateien erstellt werden?",
+                options: [
+                    "/etc/nginx/nginx.conf",
+                    "/etc/nginx/sites-enabled/",
+                    "/etc/nginx/sites-available/",
+                    "/var/www/html/"
+                ],
+                correct: 2,
+                explanation: "Site-Konfigurationen werden in /etc/nginx/sites-available/ erstellt. Von dort werden sie mit symbolischen Links nach /etc/nginx/sites-enabled/ verlinkt, um sie zu aktivieren. Dies ermöglicht einfaches Aktivieren/Deaktivieren von Sites."
+            },
+            {
+                question: "Welcher Befehl aktiviert eine neue Nginx-Site?",
+                options: [
+                    "sudo systemctl enable site-name",
+                    "sudo ln -s /etc/nginx/sites-available/site /etc/nginx/sites-enabled/",
+                    "sudo nginx --enable site-name",
+                    "sudo a2ensite site-name"
+                ],
+                correct: 1,
+                explanation: "Ein symbolischer Link von sites-available nach sites-enabled aktiviert eine Site. Der Befehl 'a2ensite' ist für Apache, nicht für Nginx."
+            },
+            {
+                question: "Was macht die Direktive 'server_name' in einer Nginx-Konfiguration?",
+                options: [
+                    "Definiert den Hostnamen des Servers",
+                    "Legt fest, für welche Domain(s) dieser Server Block zuständig ist",
+                    "Setzt den Namen des Nginx-Prozesses",
+                    "Konfiguriert den DNS-Server"
+                ],
+                correct: 1,
+                explanation: "server_name definiert, für welche Domains oder Hostnamen dieser Server Block Anfragen bearbeitet. Nginx verwendet diese Information, um eingehende Requests dem richtigen Virtual Host zuzuordnen."
+            },
+            {
+                question: "Welche Datei muss bearbeitet werden, um lokale Domain-Namen zu testen?",
+                options: [
+                    "/etc/resolv.conf",
+                    "/etc/hostname",
+                    "/etc/hosts",
+                    "/etc/nginx/nginx.conf"
+                ],
+                correct: 2,
+                explanation: "/etc/hosts ermöglicht es, Domain-Namen lokal auf IP-Adressen zu mappen. Perfekt für Entwicklung und Tests, bevor echte DNS-Einträge erstellt werden."
+            },
+            {
+                question: "Was bedeutet der chmod-Wert 755 für Webverzeichnisse?",
+                options: [
+                    "Nur der Besitzer kann lesen",
+                    "Besitzer: rwx, Gruppe: r-x, Andere: r-x",
+                    "Alle haben vollen Zugriff",
+                    "Niemand kann schreiben"
+                ],
+                correct: 1,
+                explanation: "755 ist Standard für Webverzeichnisse: Der Besitzer kann alles (7=rwx), Gruppe und Andere können lesen und ausführen (5=r-x), aber nicht schreiben. Dies erlaubt Nginx, die Dateien zu lesen und Verzeichnisse zu durchsuchen."
+            },
+            {
+                question: "Welcher Benutzer sollte idealerweise Webdateien besitzen?",
+                options: [
+                    "root",
+                    "nginx",
+                    "www-data",
+                    "nobody"
+                ],
+                correct: 2,
+                explanation: "Unter Ubuntu/Debian läuft Nginx als 'www-data' Benutzer. Die Webdateien sollten diesem Benutzer gehören, um Sicherheit und korrekte Zugriffsrechte zu gewährleisten."
+            },
+            {
+                question: "Mit welchem Befehl testet man die Nginx-Konfiguration auf Fehler?",
+                options: [
+                    "nginx --test",
+                    "sudo nginx -t",
+                    "sudo systemctl test nginx",
+                    "sudo nginx-test"
+                ],
+                correct: 1,
+                explanation: "sudo nginx -t testet die Konfiguration auf Syntaxfehler, ohne Nginx neu zu starten. Sollte immer vor einem Reload/Restart ausgeführt werden!"
+            },
+            {
+                question: "Was ist der Unterschied zwischen 'reload' und 'restart' bei Nginx?",
+                options: [
+                    "Es gibt keinen Unterschied",
+                    "Reload lädt nur neue Konfiguration, restart stoppt und startet den Service",
+                    "Restart ist schneller als reload",
+                    "Reload funktioniert nur für SSL-Zertifikate"
+                ],
+                correct: 1,
+                explanation: "Reload lädt die Konfiguration neu ohne aktive Verbindungen zu unterbrechen (graceful). Restart stoppt Nginx komplett und startet es neu, was kurze Ausfälle verursacht."
+            },
+            {
+                question: "Wie implementiert man Basis-Authentifizierung für einen Nginx Virtual Host?",
+                options: [
+                    "Mit auth_basic und auth_basic_user_file Direktiven",
+                    "Durch Installation eines Login-Plugins",
+                    "Mit der password_protect Direktive",
+                    "Nur über SSL möglich"
+                ],
+                correct: 0,
+                explanation: "auth_basic 'Realm' aktiviert Basis-Authentifizierung, auth_basic_user_file verweist auf die Passwort-Datei (erstellt mit htpasswd). Dies schützt Bereiche mit Benutzername/Passwort."
+            },
+            {
+                question: "Welche Direktive begrenzt den Zugriff auf bestimmte IP-Adressen?",
+                options: [
+                    "ip_filter",
+                    "allow/deny",
+                    "access_control",
+                    "restrict_ip"
+                ],
+                correct: 1,
+                explanation: "Die 'allow' und 'deny' Direktiven kontrollieren den Zugriff basierend auf IP-Adressen. Z.B. 'allow 192.168.0.0/16; deny all;' erlaubt nur lokalen Netzwerk-Zugriff."
+            },
+            {
+                question: "Was zeigt der Befehl 'curl -I http://domain.local'?",
+                options: [
+                    "Den kompletten HTML-Inhalt",
+                    "Nur die HTTP-Header",
+                    "Die IP-Adresse des Servers",
+                    "Die Nginx-Version"
+                ],
+                correct: 1,
+                explanation: "curl -I (großes i) macht einen HEAD-Request und zeigt nur die HTTP-Response-Header. Nützlich um Status-Codes, Server-Header und andere Meta-Informationen zu prüfen."
+            },
+            {
+                question: "Wo findet man Nginx-Fehlermeldungen bei Problemen?",
+                options: [
+                    "/var/log/syslog",
+                    "/var/log/nginx/error.log",
+                    "/etc/nginx/errors",
+                    "journalctl ohne Parameter"
+                ],
+                correct: 1,
+                explanation: "Nginx schreibt Fehler standardmäßig nach /var/log/nginx/error.log. Jeder Virtual Host kann zusätzlich eigene Error-Logs haben. 'sudo tail -f /var/log/nginx/error.log' zeigt Fehler in Echtzeit."
+            },
+            {
+                question: "Was bewirkt das Set-GID-Bit auf dem /srv/helpdesk Verzeichnis?",
+                options: [
+                    "Nur die Gruppe kann Dateien erstellen",
+                    "Neue Dateien erben automatisch die Gruppe des Verzeichnisses",
+                    "Das Verzeichnis wird schreibgeschützt",
+                    "Nur root kann darauf zugreifen"
+                ],
+                correct: 1,
+                explanation: "Set-GID (chmod g+s) sorgt dafür, dass neue Dateien die Gruppe des Verzeichnisses erben statt der primären Gruppe des Erstellers. Perfekt für gemeinsame Projekt-Verzeichnisse!"
+            },
+            {
+                question: "Welcher Performance-Test-Befehl wurde in der Übung verwendet?",
+                options: [
+                    "nginx-bench",
+                    "ab (Apache Bench)",
+                    "curl --benchmark",
+                    "stress-test"
+                ],
+                correct: 1,
+                explanation: "Apache Bench (ab) ist ein einfaches Tool für HTTP-Performance-Tests. Z.B. 'ab -n 100 -c 10 http://site/' macht 100 Requests mit 10 gleichzeitigen Verbindungen."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answerShown = false;
+        let selectedOption = null;
+        let startTime = Date.now();
+        let timerInterval;
+
+        function startQuiz() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('quiz-content').style.display = 'block';
+            startTimer();
+            showQuestion();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+            }, 1000);
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            const container = document.getElementById('quiz-content');
+            
+            let optionsHtml = q.options.map((opt, idx) => {
+                // Check if option contains code-like content
+                const isCode = opt.includes('/') || opt.includes('sudo') || opt.includes('-');
+                return `
+                    <li class="option" onclick="selectOption(${idx})">
+                        <span class="option-letter">${String.fromCharCode(65 + idx)}</span>
+                        ${isCode ? `<code style="font-family: monospace; background: #f5f5f5; padding: 2px 5px; border-radius: 3px;">${opt}</code>` : opt}
+                    </li>
+                `;
+            }).join('');
+            
+            container.innerHTML = `
+                <div class="question-container active">
+                    <div class="question">
+                        <span class="question-number">Frage ${currentQuestion + 1} / ${questions.length}</span>
+                        ${q.question}
+                    </div>
+                    <ul class="options">
+                        ${optionsHtml}
+                    </ul>
+                    <div class="explanation" id="explanation">
+                        <h4>💡 Erklärung:</h4>
+                        <p>${q.explanation}</p>
+                    </div>
+                    <div class="buttons">
+                        <button class="btn-prev" onclick="previousQuestion()" ${currentQuestion === 0 ? 'disabled' : ''}>
+                            ← Zurück
+                        </button>
+                        <button class="btn-show" onclick="showAnswer()" id="show-btn">
+                            Lösung zeigen
+                        </button>
+                        <button class="btn-next" onclick="nextQuestion()" id="next-btn" disabled>
+                            Weiter →
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            updateProgress();
+            answerShown = false;
+            selectedOption = null;
+        }
+
+        function selectOption(idx) {
+            if (answerShown) return;
+            
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[idx].classList.add('selected');
+            selectedOption = idx;
+        }
+
+        function showAnswer() {
+            if (answerShown) return;
+            
+            answerShown = true;
+            const q = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            options[q.correct].classList.add('correct');
+            
+            if (selectedOption !== null && selectedOption !== q.correct) {
+                options[selectedOption].classList.add('incorrect');
+            } else if (selectedOption === q.correct) {
+                score++;
+            }
+            
+            document.getElementById('explanation').classList.add('show');
+            document.getElementById('show-btn').disabled = true;
+            document.getElementById('next-btn').disabled = false;
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function showResults() {
+            clearInterval(timerInterval);
+            document.getElementById('quiz-content').style.display = 'none';
+            document.getElementById('results').classList.add('show');
+            
+            const percentage = (score / questions.length) * 100;
+            document.getElementById('final-score').textContent = `${score} / ${questions.length}`;
+            
+            let emoji, message;
+            if (percentage >= 90) {
+                emoji = '🏆';
+                message = 'Hervorragend! Sie sind bereit für komplexe Nginx-Deployments!';
+            } else if (percentage >= 70) {
+                emoji = '🌟';
+                message = 'Sehr gut! Die Virtual Hosts Konzepte sitzen!';
+            } else if (percentage >= 50) {
+                emoji = '💪';
+                message = 'Solide Grundlagen! Mit etwas Übung werden Sie zum Nginx-Profi.';
+            } else {
+                emoji = '📚';
+                message = 'Keine Sorge! Nginx-Konfiguration lernt man am besten durch Praxis.';
+            }
+            
+            document.getElementById('result-emoji').textContent = emoji;
+            document.getElementById('result-message').textContent = message;
+            
+            // Add week 1 completion message
+            const completionMessage = document.createElement('div');
+            completionMessage.style.marginTop = '30px';
+            completionMessage.style.padding = '20px';
+            completionMessage.style.background = '#e8f5e9';
+            completionMessage.style.borderRadius = '10px';
+            completionMessage.innerHTML = `
+                <h3 style="color: #2e7d32;">🎉 Woche 1 abgeschlossen!</h3>
+                <p style="margin-top: 10px;">Herzlichen Glückwunsch! Sie haben die erste Woche erfolgreich gemeistert:</p>
+                <ul style="text-align: left; display: inline-block; margin-top: 10px;">
+                    <li>✅ Command Line Navigation</li>
+                    <li>✅ Linux Architektur verstanden</li>
+                    <li>✅ Benutzer & Gruppen verwaltet</li>
+                    <li>✅ Ersten Webserver konfiguriert</li>
+                    <li>✅ Virtual Hosts eingerichtet</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>Bereit für Woche 2: Dateiberechtigungen & Prozessmanagement! 🚀</strong></p>
+            `;
+            document.getElementById('results').appendChild(completionMessage);
+        }
+    </script>
+</body>
+</html>

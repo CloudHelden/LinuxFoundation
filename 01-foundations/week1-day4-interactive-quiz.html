@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Grundlagen - Interaktives Quiz Woche 1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-width: 800px;
+            width: 90%;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .quiz-header h1 {
+            color: #2a5298;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .question-container {
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .question-container.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .question {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: #2a5298;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+
+        .options {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover {
+            background: #e8f4f8;
+            border-color: #2a5298;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: #e3f2fd;
+            border-color: #2196F3;
+        }
+
+        .option.correct {
+            background: #e8f5e9;
+            border-color: #4CAF50;
+        }
+
+        .option.incorrect {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        .option-letter {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #2a5298;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        .option.correct .option-letter {
+            background: #4CAF50;
+        }
+
+        .option.incorrect .option-letter {
+            background: #f44336;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-show {
+            background: #ff9800;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-show:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .btn-next {
+            background: #2196F3;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-next:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-prev {
+            background: #757575;
+            color: white;
+        }
+
+        .btn-prev:hover {
+            background: #616161;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .explanation {
+            background: #f0f7ff;
+            border-left: 4px solid #2196F3;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .explanation.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .explanation h4 {
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .results {
+            text-align: center;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        .score {
+            font-size: 3em;
+            color: #4CAF50;
+            margin: 20px 0;
+        }
+
+        .emoji {
+            font-size: 4em;
+            margin: 20px 0;
+        }
+
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-screen h2 {
+            color: #2a5298;
+            margin-bottom: 20px;
+        }
+
+        .topic-list {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .topic-list h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .topic-list ul {
+            list-style-position: inside;
+            color: #555;
+        }
+
+        .topic-list li {
+            margin: 8px 0;
+        }
+
+        .btn-start {
+            background: #4CAF50;
+            color: white;
+            font-size: 1.3em;
+            padding: 15px 40px;
+            margin-top: 20px;
+        }
+
+        .btn-start:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        @media (max-width: 600px) {
+            .quiz-container {
+                padding: 20px;
+            }
+
+            .quiz-header h1 {
+                font-size: 1.8em;
+            }
+
+            .question {
+                font-size: 1.1em;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="timer" id="timer">00:00</div>
+        
+        <div class="quiz-header">
+            <h1>🐧 Linux Grundlagen Quiz</h1>
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="start-screen">
+            <h2>Willkommen zum interaktiven Quiz!</h2>
+            <p>Testen Sie Ihr Wissen aus Woche 1</p>
+            
+            <div class="topic-list">
+                <h3>📚 Themen:</h3>
+                <ul>
+                    <li>Tag 1: Command Line Basics</li>
+                    <li>Tag 2: Linux Architektur</li>
+                    <li>Tag 3: Benutzer & Gruppen</li>
+                </ul>
+            </div>
+
+            <button class="btn-start" onclick="startQuiz()">Quiz starten! 🚀</button>
+        </div>
+
+        <!-- Quiz Content -->
+        <div id="quiz-content" style="display: none;">
+            <!-- Questions will be inserted here -->
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results" class="results">
+            <h2>Quiz abgeschlossen! 🎉</h2>
+            <div class="emoji" id="result-emoji"></div>
+            <div class="score" id="final-score">0/0</div>
+            <p id="result-message"></p>
+            <button class="btn-start" onclick="location.reload()">Nochmal spielen</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Was macht der Befehl pwd?",
+                options: [
+                    "Ändert das Passwort",
+                    "Zeigt das aktuelle Verzeichnis",
+                    "Listet Dateien auf",
+                    "Erstellt ein Verzeichnis"
+                ],
+                correct: 1,
+                explanation: "pwd steht für 'print working directory' und zeigt das aktuelle Arbeitsverzeichnis an."
+            },
+            {
+                question: "Wie navigiert man zum Home-Verzeichnis?",
+                options: [
+                    "cd ~",
+                    "cd /root",
+                    "cd /home",
+                    "cd .."
+                ],
+                correct: 0,
+                explanation: "Die Tilde (~) ist eine Abkürzung für das Home-Verzeichnis des aktuellen Benutzers. Alternativ funktioniert auch einfach 'cd' ohne Parameter."
+            },
+            {
+                question: "Was zeigt ls -la?",
+                options: [
+                    "Nur Verzeichnisse",
+                    "Alle Dateien inkl. versteckte mit Details",
+                    "Nur große Dateien",
+                    "Systemlogs"
+                ],
+                correct: 1,
+                explanation: "ls -la zeigt alle Dateien (auch versteckte mit .) in Langform mit Details wie Berechtigungen, Besitzer, Größe und Datum."
+            },
+            {
+                question: "Welcher Parameter erstellt verschachtelte Verzeichnisse mit mkdir?",
+                options: [
+                    "mkdir -r",
+                    "mkdir -p",
+                    "mkdir -v",
+                    "mkdir -f"
+                ],
+                correct: 1,
+                explanation: "mkdir -p (parent) erstellt auch alle übergeordneten Verzeichnisse, falls diese noch nicht existieren."
+            },
+            {
+                question: "Welche Komponente ist das Herz von Linux?",
+                options: [
+                    "Die Shell",
+                    "Der Desktop",
+                    "Der Kernel",
+                    "Das Terminal"
+                ],
+                correct: 2,
+                explanation: "Der Kernel ist der zentrale Bestandteil von Linux, der die Hardware verwaltet und die Basis für alle anderen Programme bildet."
+            },
+            {
+                question: "Was ist KEIN Init-System?",
+                options: [
+                    "systemd",
+                    "SysV init",
+                    "nginx",
+                    "Upstart"
+                ],
+                correct: 2,
+                explanation: "nginx ist ein Webserver, kein Init-System. Init-Systeme wie systemd starten und verwalten Systemprozesse."
+            },
+            {
+                question: "Welcher Befehl zeigt alle laufenden Prozesse?",
+                options: [
+                    "ps aux",
+                    "ls -l",
+                    "pwd",
+                    "cd /proc"
+                ],
+                correct: 0,
+                explanation: "ps aux zeigt alle Prozesse aller Benutzer mit detaillierten Informationen. Das 'a' steht für alle Benutzer, 'u' für benutzerorientierte Ausgabe, 'x' für Prozesse ohne Terminal."
+            },
+            {
+                question: "Welche UID hat der root-Benutzer immer?",
+                options: [
+                    "1",
+                    "0",
+                    "1000",
+                    "100"
+                ],
+                correct: 1,
+                explanation: "Der root-Benutzer hat immer die UID 0. Dies ist in Unix/Linux-Systemen fest definiert."
+            },
+            {
+                question: "Mit welchem Befehl fügt man einen Benutzer einer Gruppe hinzu?",
+                options: [
+                    "useradd",
+                    "groupadd",
+                    "usermod",
+                    "passwd"
+                ],
+                correct: 2,
+                explanation: "usermod -aG gruppenname benutzername fügt einen bestehenden Benutzer einer zusätzlichen Gruppe hinzu. Das -a steht für 'append'."
+            },
+            {
+                question: "Was bewirkt das Set-GID-Bit auf einem Verzeichnis?",
+                options: [
+                    "Nur root kann zugreifen",
+                    "Neue Dateien erben die Gruppe des Verzeichnisses",
+                    "Dateien werden automatisch ausführbar",
+                    "Das Verzeichnis wird schreibgeschützt"
+                ],
+                correct: 1,
+                explanation: "Das Set-GID-Bit (chmod g+s) sorgt dafür, dass neue Dateien in diesem Verzeichnis automatisch die Gruppe des Verzeichnisses erben, nicht die primäre Gruppe des Erstellers."
+            },
+            {
+                question: "Wo werden die Benutzerinformationen (nicht Passwörter) gespeichert?",
+                options: [
+                    "/etc/passwd",
+                    "/home/users",
+                    "/var/users",
+                    "/usr/passwd"
+                ],
+                correct: 0,
+                explanation: "/etc/passwd enthält Benutzerinformationen wie Username, UID, GID, Home-Verzeichnis und Shell. Die eigentlichen Passwörter sind verschlüsselt in /etc/shadow."
+            },
+            {
+                question: "Was bedeutet die Oktalzahl 755 bei Dateiberechtigungen?",
+                options: [
+                    "Nur Besitzer darf alles",
+                    "Alle dürfen alles",
+                    "Besitzer: rwx, Gruppe: r-x, Andere: r-x",
+                    "Besitzer: r--, Gruppe: r--, Andere: r--"
+                ],
+                correct: 2,
+                explanation: "755 bedeutet: Besitzer=7 (rwx), Gruppe=5 (r-x), Andere=5 (r-x). Die Zahlen ergeben sich aus: r=4, w=2, x=1."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answerShown = false;
+        let selectedOption = null;
+        let startTime = Date.now();
+        let timerInterval;
+
+        function startQuiz() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('quiz-content').style.display = 'block';
+            startTimer();
+            showQuestion();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+            }, 1000);
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            const container = document.getElementById('quiz-content');
+            
+            container.innerHTML = `
+                <div class="question-container active">
+                    <div class="question">
+                        <span class="question-number">Frage ${currentQuestion + 1} / ${questions.length}</span>
+                        ${q.question}
+                    </div>
+                    <ul class="options">
+                        ${q.options.map((opt, idx) => `
+                            <li class="option" onclick="selectOption(${idx})">
+                                <span class="option-letter">${String.fromCharCode(65 + idx)}</span>
+                                ${opt}
+                            </li>
+                        `).join('')}
+                    </ul>
+                    <div class="explanation" id="explanation">
+                        <h4>💡 Erklärung:</h4>
+                        <p>${q.explanation}</p>
+                    </div>
+                    <div class="buttons">
+                        <button class="btn-prev" onclick="previousQuestion()" ${currentQuestion === 0 ? 'disabled' : ''}>
+                            ← Zurück
+                        </button>
+                        <button class="btn-show" onclick="showAnswer()" id="show-btn">
+                            Lösung zeigen
+                        </button>
+                        <button class="btn-next" onclick="nextQuestion()" id="next-btn" disabled>
+                            Weiter →
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            updateProgress();
+            answerShown = false;
+            selectedOption = null;
+        }
+
+        function selectOption(idx) {
+            if (answerShown) return;
+            
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[idx].classList.add('selected');
+            selectedOption = idx;
+        }
+
+        function showAnswer() {
+            if (answerShown) return;
+            
+            answerShown = true;
+            const q = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            options[q.correct].classList.add('correct');
+            
+            if (selectedOption !== null && selectedOption !== q.correct) {
+                options[selectedOption].classList.add('incorrect');
+            } else if (selectedOption === q.correct) {
+                score++;
+            }
+            
+            document.getElementById('explanation').classList.add('show');
+            document.getElementById('show-btn').disabled = true;
+            document.getElementById('next-btn').disabled = false;
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function showResults() {
+            clearInterval(timerInterval);
+            document.getElementById('quiz-content').style.display = 'none';
+            document.getElementById('results').classList.add('show');
+            
+            const percentage = (score / questions.length) * 100;
+            document.getElementById('final-score').textContent = `${score} / ${questions.length}`;
+            
+            let emoji, message;
+            if (percentage >= 90) {
+                emoji = '🏆';
+                message = 'Exzellent! Sie sind ein Linux-Experte!';
+            } else if (percentage >= 70) {
+                emoji = '😊';
+                message = 'Sehr gut! Die Grundlagen sitzen!';
+            } else if (percentage >= 50) {
+                emoji = '🤔';
+                message = 'Gut gemacht! Ein bisschen Übung schadet nicht.';
+            } else {
+                emoji = '📚';
+                message = 'Weiter üben! Rom wurde auch nicht an einem Tag erbaut.';
+            }
+            
+            document.getElementById('result-emoji').textContent = emoji;
+            document.getElementById('result-message').textContent = message;
+        }
+    </script>
+</body>
+</html>
