@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Grundlagen - Wissenscheck Woche 1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-width: 1000px;
+            width: 90%;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .quiz-header h1 {
+            color: #1a237e;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .quiz-logo {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .question-container {
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .question-container.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .question {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: #1a237e;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+
+        .topic-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        .options {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover {
+            background: #e8eaf6;
+            border-color: #3949ab;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: #e8eaf6;
+            border-color: #5c6bc0;
+        }
+
+        .option.correct {
+            background: #e8f5e9;
+            border-color: #4CAF50;
+        }
+
+        .option.incorrect {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        .option-letter {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #1a237e;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        .option.correct .option-letter {
+            background: #4CAF50;
+        }
+
+        .option.incorrect .option-letter {
+            background: #f44336;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-show {
+            background: #ff9800;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-show:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .btn-next {
+            background: #3949ab;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-next:hover {
+            background: #303f9f;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(57, 73, 171, 0.3);
+        }
+
+        .btn-prev {
+            background: #757575;
+            color: white;
+        }
+
+        .btn-prev:hover {
+            background: #616161;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .explanation {
+            background: #e8eaf6;
+            border-left: 4px solid #3949ab;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .explanation.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .explanation h4 {
+            color: #1a237e;
+            margin-bottom: 10px;
+        }
+
+        .pro-tip {
+            background: #f5f5f5;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .code-block {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .results {
+            text-align: center;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        .score {
+            font-size: 3em;
+            color: #4CAF50;
+            margin: 20px 0;
+        }
+
+        .emoji {
+            font-size: 4em;
+            margin: 20px 0;
+        }
+
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-screen h2 {
+            color: #1a237e;
+            margin-bottom: 20px;
+        }
+
+        .topic-list {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .topic-list h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .topic-list ul {
+            list-style-position: inside;
+            color: #555;
+        }
+
+        .topic-list li {
+            margin: 8px 0;
+        }
+
+        .btn-start {
+            background: #4CAF50;
+            color: white;
+            font-size: 1.3em;
+            padding: 15px 40px;
+            margin-top: 20px;
+        }
+
+        .btn-start:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .note {
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #0d47a1;
+        }
+
+        @media (max-width: 600px) {
+            .quiz-container {
+                padding: 20px;
+            }
+
+            .quiz-header h1 {
+                font-size: 1.8em;
+            }
+
+            .question {
+                font-size: 1.1em;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="timer" id="timer">00:00</div>
+        
+        <div class="quiz-header">
+            <div class="quiz-logo">🧠</div>
+            <h1>Linux Wissenscheck</h1>
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="start-screen">
+            <h2>Recap Quiz - Woche 1 Abschluss</h2>
+            <p>Wie gut haben Sie die Inhalte der ersten Woche verinnerlicht?</p>
+            
+            <div class="topic-list">
+                <h3>📚 Themen dieser Woche:</h3>
+                <ul>
+                    <li><strong>Tag 1:</strong> Command Line Grundlagen</li>
+                    <li><strong>Tag 2:</strong> Linux Architektur verstehen</li>
+                    <li><strong>Tag 3:</strong> Benutzer und Gruppen verwalten</li>
+                    <li><strong>Tag 4:</strong> Praktische Übungen und Wiederholung</li>
+                    <li><strong>Tag 5:</strong> Webserver-Installation und Konfiguration</li>
+                </ul>
+            </div>
+
+            <div class="note">
+                <strong>Tipp:</strong> Dieses Quiz testet Ihr Detailwissen - genau die Art von Fragen, die auch in professionellen Umgebungen wichtig sind!
+            </div>
+
+            <button class="btn-start" onclick="startQuiz()">Quiz starten! 🚀</button>
+        </div>
+
+        <!-- Quiz Content -->
+        <div id="quiz-content" style="display: none;">
+            <!-- Questions will be inserted here -->
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results" class="results">
+            <h2>Quiz abgeschlossen! 🎉</h2>
+            <div class="emoji" id="result-emoji"></div>
+            <div class="score" id="final-score">0/0</div>
+            <p id="result-message"></p>
+            <button class="btn-start" onclick="location.reload()">Nochmal üben</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Welche Datei enthält die Zuordnung von Hostnamen zu IP-Adressen für die lokale Namensauflösung?",
+                options: [
+                    "/etc/hosts",
+                    "/etc/resolv.conf",
+                    "/etc/hostname",
+                    "/etc/networks"
+                ],
+                correct: 0,
+                topic: "Netzwerk-Grundlagen",
+                explanation: "/etc/hosts wird für lokale Namensauflösung verwendet, bevor DNS-Server kontaktiert werden. Format: IP-Adresse Hostname [Aliase]",
+                proTip: "Praktisch für: Lokale Entwicklung, Testing, DNS-Überschreibung"
+            },
+            {
+                question: "Mit welchem Befehl zeigen Sie die aktuell eingeloggten Benutzer an?",
+                options: [
+                    "users",
+                    "who",
+                    "id",
+                    "whoami"
+                ],
+                correct: 1,
+                topic: "Benutzerverwaltung",
+                explanation: "who zeigt alle eingeloggten Benutzer mit Terminal und Login-Zeit. 'users' zeigt nur Benutzernamen, 'whoami' nur den eigenen Namen, 'id' zeigt UID/GID Informationen.",
+                proTip: "Merkhilfe: 'who' = wer ist da? (alle), 'whoami' = wer bin ich? (nur ich)"
+            },
+            {
+                question: "Welches Verzeichnis ist gemäß FHS für temporäre Dateien vorgesehen?",
+                options: [
+                    "/var/tmp",
+                    "/tmp",
+                    "/usr/tmp",
+                    "/home/tmp"
+                ],
+                correct: 1,
+                topic: "Dateisystem-Standards",
+                explanation: "/tmp ist für temporäre Dateien, die beim Reboot gelöscht werden können. /var/tmp ist für temporäre Dateien, die Reboots überleben sollen.",
+                proTip: "Eselsbrücke: /tmp = temporary (verschwindet), /var/tmp = variabel persistent"
+            },
+            {
+                question: "Welcher Befehl zeigt die UID und GIDs eines Benutzers?",
+                options: [
+                    "id username",
+                    "uid username",
+                    "groups username",
+                    "getent username"
+                ],
+                correct: 0,
+                topic: "Benutzerverwaltung",
+                explanation: "id zeigt UID (User ID), GID (Group ID) und alle Gruppenmitgliedschaften. Syntax: id [username]",
+                proTip: "Ohne Benutzername zeigt 'id' die eigenen Informationen"
+            },
+            {
+                question: "In welcher Datei werden die verschlüsselten Passwörter der Benutzer gespeichert?",
+                options: [
+                    "/etc/passwd",
+                    "/etc/shadow",
+                    "/etc/security/passwd",
+                    "/etc/passwords"
+                ],
+                correct: 1,
+                topic: "System-Sicherheit",
+                explanation: "/etc/shadow enthält die verschlüsselten Passwörter und ist nur für root lesbar. /etc/passwd enthält Benutzerinformationen, aber keine Passwörter mehr.",
+                proTip: "Historie: Früher waren Passwörter in /etc/passwd - daher der Name!"
+            },
+            {
+                question: "Welcher Systemd-Befehl zeigt den Status eines Services?",
+                options: [
+                    "systemctl status servicename",
+                    "service servicename status",
+                    "systemd status servicename",
+                    "/etc/init.d/servicename status"
+                ],
+                correct: 0,
+                topic: "Service-Management",
+                explanation: "systemctl ist das Hauptwerkzeug für systemd. 'service' ist ein Kompatibilitäts-Wrapper, /etc/init.d/ ist SysV-Init.",
+                proTip: "systemctl kann auch: start, stop, restart, reload, enable, disable"
+            },
+            {
+                question: "Mit welchem Befehl fügen Sie einen existierenden Benutzer einer zusätzlichen Gruppe hinzu?",
+                options: [
+                    "useradd -G group username",
+                    "usermod -a -G group username",
+                    "groupadd username group",
+                    "adduser username group"
+                ],
+                correct: 1,
+                topic: "Benutzerverwaltung",
+                explanation: "usermod -a -G fügt einen Benutzer zu einer zusätzlichen Gruppe hinzu. Das -a (append) ist wichtig, sonst werden bestehende Gruppenmitgliedschaften überschrieben!",
+                proTip: "WICHTIG: Ohne -a verliert der Benutzer alle anderen Gruppen!"
+            },
+            {
+                question: "Welches Signal sendet 'kill' standardmäßig an einen Prozess?",
+                options: [
+                    "SIGKILL (9)",
+                    "SIGTERM (15)",
+                    "SIGHUP (1)",
+                    "SIGINT (2)"
+                ],
+                correct: 1,
+                topic: "Prozessverwaltung",
+                explanation: "kill sendet standardmäßig SIGTERM (15), was dem Prozess erlaubt, sich sauber zu beenden. SIGKILL (9) beendet sofort ohne Aufräumen.",
+                proTip: "Merkhilfe: TERM = höflich terminieren, KILL = brutal killen"
+            },
+            {
+                question: "Welche Oktalzahl repräsentiert die Berechtigung rwxr-x--x?",
+                options: [
+                    "741",
+                    "751",
+                    "754",
+                    "744"
+                ],
+                correct: 1,
+                topic: "Dateiberechtigungen",
+                explanation: "rwx=7 (4+2+1), r-x=5 (4+0+1), --x=1 (0+0+1). Also: 751",
+                proTip: "Merkhilfe: r=4 (read), w=2 (write), x=1 (execute) - addieren!"
+            },
+            {
+                question: "Mit welchem Befehl erstellen Sie ein Verzeichnis inklusive aller übergeordneten Verzeichnisse?",
+                options: [
+                    "mkdir -r /path/to/dir",
+                    "mkdir -p /path/to/dir",
+                    "mkdir -a /path/to/dir",
+                    "mkdir --parents /path/to/dir"
+                ],
+                correct: 1,
+                topic: "Dateiverwaltung",
+                explanation: "mkdir -p (oder --parents) erstellt das Zielverzeichnis und alle fehlenden übergeordneten Verzeichnisse.",
+                proTip: "p = parents: Elternverzeichnisse werden mit erstellt"
+            },
+            {
+                question: "Welche Umgebungsvariable definiert den Standard-Texteditor?",
+                options: [
+                    "$VISUAL",
+                    "$EDITOR",
+                    "$EDIT",
+                    "$DEFAULT_EDITOR"
+                ],
+                correct: 1,
+                topic: "Shell-Umgebung",
+                explanation: "$EDITOR definiert den Standard-Texteditor. $VISUAL ist für vollständige Bildschirm-Editoren. Programme prüfen oft erst $VISUAL, dann $EDITOR.",
+                proTip: "Setzen mit: export EDITOR=nano oder export EDITOR=vim"
+            },
+            {
+                question: "Wo befindet sich die primäre Konfigurationsdatei für den SSH-Client?",
+                options: [
+                    "/etc/ssh/ssh_config",
+                    "/etc/ssh/sshd_config",
+                    "~/.ssh/config",
+                    "/etc/ssh_config"
+                ],
+                correct: 0,
+                topic: "Netzwerk-Konfiguration",
+                explanation: "/etc/ssh/ssh_config ist die systemweite SSH-Client-Konfiguration. ~/.ssh/config ist die benutzerspezifische Konfiguration. sshd_config ist für den Server.",
+                proTip: "Merkhilfe: sshD_config = Daemon (Server), ssh_config = Client"
+            },
+            {
+                question: "Mit welchem Befehl können Sie die Prozesshierarchie als Baum anzeigen?",
+                options: [
+                    "ps -tree",
+                    "pstree",
+                    "ps aux --tree",
+                    "process-tree"
+                ],
+                correct: 1,
+                topic: "Prozessverwaltung",
+                explanation: "pstree zeigt laufende Prozesse als Baum an, wodurch Parent-Child-Beziehungen sichtbar werden.",
+                proTip: "Alternative: ps auxf (f für forest/Wald-Ansicht)"
+            },
+            {
+                question: "Welches Kommando zeigt alle geladenen Kernel-Module an?",
+                options: [
+                    "modprobe -l",
+                    "lsmod",
+                    "modules",
+                    "kmod list"
+                ],
+                correct: 1,
+                topic: "System-Hardware",
+                explanation: "lsmod zeigt alle aktuell geladenen Kernel-Module. Es liest die Informationen aus /proc/modules.",
+                proTip: "Weitere Modul-Befehle: modprobe (laden), rmmod (entladen)"
+            },
+            {
+                question: "Welcher Befehl aktualisiert die Paketlisten in einem Debian-basierten System?",
+                options: [
+                    "apt-get upgrade",
+                    "apt-get update",
+                    "dpkg --update",
+                    "aptitude refresh"
+                ],
+                correct: 1,
+                topic: "Paketverwaltung",
+                explanation: "apt-get update (oder apt update) lädt die aktuellen Paketlisten von den konfigurierten Repositories. upgrade installiert dann verfügbare Updates.",
+                proTip: "Workflow: erst update (Listen holen), dann upgrade (installieren)"
+            },
+            {
+                question: "Was bewirkt das Set-GID-Bit auf einem Verzeichnis?",
+                options: [
+                    "Nur die Gruppe kann schreiben",
+                    "Neue Dateien erben die Gruppe des Verzeichnisses",
+                    "Das Verzeichnis wird ausführbar",
+                    "Nur root kann löschen"
+                ],
+                correct: 1,
+                topic: "Erweiterte Berechtigungen",
+                explanation: "Set-GID (chmod g+s) auf Verzeichnissen bewirkt, dass neue Dateien die Gruppe des Verzeichnisses erben statt der primären Gruppe des Erstellers.",
+                proTip: "Perfekt für gemeinsame Projektverzeichnisse!"
+            },
+            {
+                question: "Welche Datei definiert die verfügbaren Shells im System?",
+                options: [
+                    "/etc/shells",
+                    "/etc/bash.conf",
+                    "/etc/shell.conf",
+                    "/usr/share/shells"
+                ],
+                correct: 0,
+                topic: "System-Konfiguration",
+                explanation: "/etc/shells listet alle gültigen Login-Shells. Benutzer können nur Shells aus dieser Liste als Login-Shell verwenden.",
+                proTip: "chsh (change shell) prüft gegen diese Liste"
+            },
+            {
+                question: "Mit welchem Befehl zeigen Sie die letzten 20 Zeilen einer Datei?",
+                options: [
+                    "head -20 file",
+                    "tail -20 file",
+                    "tail -n 20 file",
+                    "last -20 file"
+                ],
+                correct: 2,
+                topic: "Textverarbeitung",
+                explanation: "tail -n 20 (oder tail -20) zeigt die letzten 20 Zeilen. head zeigt die ersten Zeilen. 'last' zeigt Login-Historie.",
+                proTip: "tail -f folgt neuen Zeilen in Echtzeit (gut für Logs!)"
+            },
+            {
+                question: "Welcher Befehl zeigt die Mount-Punkte und den verfügbaren Speicherplatz?",
+                options: [
+                    "mount -a",
+                    "df -h",
+                    "du -h",
+                    "fdisk -l"
+                ],
+                correct: 1,
+                topic: "Dateisystem-Verwaltung",
+                explanation: "df (disk free) zeigt belegten und freien Speicherplatz pro Dateisystem. -h macht die Ausgabe human-readable (MB, GB statt Bytes).",
+                proTip: "df = disk free (Dateisysteme), du = disk usage (Verzeichnisse)"
+            },
+            {
+                question: "Was ist der Hauptunterschied zwischen su und sudo?",
+                options: [
+                    "su ist veraltet, sudo ist modern",
+                    "su wechselt den Benutzer, sudo führt Befehle mit anderen Rechten aus",
+                    "sudo ist nur für root, su für alle Benutzer",
+                    "Es gibt keinen Unterschied"
+                ],
+                correct: 1,
+                topic: "Rechteverwaltung",
+                explanation: "su (switch user) wechselt zu einem anderen Benutzer. sudo (superuser do) führt einzelne Befehle mit erhöhten Rechten aus, basierend auf /etc/sudoers.",
+                proTip: "sudo -i gibt Ihnen eine root-Shell (ähnlich wie su -)"
+            },
+            {
+                question: "Welche Tastenkombination beendet einen Vordergrundprozess im Terminal?",
+                options: [
+                    "Ctrl+Z",
+                    "Ctrl+C",
+                    "Ctrl+D",
+                    "Ctrl+X"
+                ],
+                correct: 1,
+                topic: "Terminal-Bedienung",
+                explanation: "Ctrl+C sendet SIGINT an den Vordergrundprozess. Ctrl+Z stoppt den Prozess (SIGTSTP), Ctrl+D signalisiert EOF (End of File).",
+                proTip: "Nach Ctrl+Z können Sie mit 'fg' fortsetzen oder 'bg' im Hintergrund"
+            },
+            {
+                question: "Welches Verzeichnis enthält Geräte-Dateien (device files)?",
+                options: [
+                    "/devices",
+                    "/dev",
+                    "/proc/devices",
+                    "/sys/devices"
+                ],
+                correct: 1,
+                topic: "Dateisystem-Struktur",
+                explanation: "/dev enthält Gerätedateien (block devices, character devices). Diese werden meist dynamisch von udev erstellt.",
+                proTip: "Beispiele: /dev/sda (Festplatte), /dev/null (Blackhole), /dev/random"
+            },
+            {
+                question: "Mit welchem Befehl finden Sie alle Dateien größer als 100MB im System?",
+                options: [
+                    "find / -size +100M",
+                    "locate -size 100M",
+                    "ls -la / | grep 100M",
+                    "du -h / +100M"
+                ],
+                correct: 0,
+                topic: "Dateisuche",
+                explanation: "find / -size +100M sucht Dateien größer als 100 Megabyte. + bedeutet größer als, - wäre kleiner als.",
+                proTip: "Vorsicht: Suche ab / kann lange dauern! Besser gezielt suchen."
+            },
+            {
+                question: "Welche Datei wird zuerst ausgeführt, wenn sich ein Benutzer mit Bash anmeldet?",
+                options: [
+                    "~/.bashrc",
+                    "~/.bash_profile",
+                    "/etc/profile",
+                    "/etc/bashrc"
+                ],
+                correct: 2,
+                topic: "Shell-Konfiguration",
+                explanation: "/etc/profile wird zuerst für alle Benutzer ausgeführt, dann ~/.bash_profile (oder ~/.profile). ~/.bashrc ist für nicht-Login-Shells.",
+                proTip: "Login-Shell-Reihenfolge: /etc/profile → ~/.bash_profile → ~/.bashrc"
+            },
+            {
+                question: "Was zeigt der Befehl 'uname -r'?",
+                options: [
+                    "Die CPU-Architektur",
+                    "Die Kernel-Version",
+                    "Den Rechnernamen",
+                    "Die Distribution"
+                ],
+                correct: 1,
+                topic: "System-Information",
+                explanation: "uname -r zeigt die Release-Nummer (Version) des Kernels. -a zeigt alle Informationen, -m die Hardware-Architektur.",
+                proTip: "uname -a zeigt alles auf einmal (all)"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answerShown = false;
+        let selectedOption = null;
+        let startTime = Date.now();
+        let timerInterval;
+
+        function startQuiz() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('quiz-content').style.display = 'block';
+            startTimer();
+            showQuestion();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+            }, 1000);
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            const container = document.getElementById('quiz-content');
+            
+            let optionsHtml = q.options.map((opt, idx) => {
+                const isCode = opt.includes('/') || opt.includes('$') || opt.includes('-') || opt.includes('chmod');
+                return `
+                    <li class="option" onclick="selectOption(${idx})">
+                        <span class="option-letter">${String.fromCharCode(65 + idx)}</span>
+                        ${isCode ? `<code style="font-family: monospace; background: #f5f5f5; padding: 2px 5px; border-radius: 3px;">${opt}</code>` : opt}
+                    </li>
+                `;
+            }).join('');
+            
+            container.innerHTML = `
+                <div class="question-container active">
+                    <div class="question">
+                        <span class="question-number">Frage ${currentQuestion + 1} / ${questions.length}</span>
+                        <span class="topic-badge">${q.topic}</span>
+                        ${q.question}
+                    </div>
+                    <ul class="options">
+                        ${optionsHtml}
+                    </ul>
+                    <div class="explanation" id="explanation">
+                        <h4>💡 Erklärung:</h4>
+                        <p>${q.explanation}</p>
+                        <div class="pro-tip">
+                            <strong>💡 Pro-Tipp:</strong> ${q.proTip}
+                        </div>
+                    </div>
+                    <div class="buttons">
+                        <button class="btn-prev" onclick="previousQuestion()" ${currentQuestion === 0 ? 'disabled' : ''}>
+                            ← Zurück
+                        </button>
+                        <button class="btn-show" onclick="showAnswer()" id="show-btn">
+                            Lösung zeigen
+                        </button>
+                        <button class="btn-next" onclick="nextQuestion()" id="next-btn" disabled>
+                            Weiter →
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            updateProgress();
+            answerShown = false;
+            selectedOption = null;
+        }
+
+        function selectOption(idx) {
+            if (answerShown) return;
+            
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[idx].classList.add('selected');
+            selectedOption = idx;
+        }
+
+        function showAnswer() {
+            if (answerShown) return;
+            
+            answerShown = true;
+            const q = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            options[q.correct].classList.add('correct');
+            
+            if (selectedOption !== null && selectedOption !== q.correct) {
+                options[selectedOption].classList.add('incorrect');
+            } else if (selectedOption === q.correct) {
+                score++;
+            }
+            
+            document.getElementById('explanation').classList.add('show');
+            document.getElementById('show-btn').disabled = true;
+            document.getElementById('next-btn').disabled = false;
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function showResults() {
+            clearInterval(timerInterval);
+            document.getElementById('quiz-content').style.display = 'none';
+            document.getElementById('results').classList.add('show');
+            
+            const percentage = (score / questions.length) * 100;
+            document.getElementById('final-score').textContent = `${score} / ${questions.length}`;
+            
+            let emoji, message;
+            if (percentage >= 80) {
+                emoji = '🏆';
+                message = 'Hervorragend! Sie beherrschen die Linux-Grundlagen perfekt!';
+            } else if (percentage >= 70) {
+                emoji = '🎯';
+                message = 'Sehr gut! Die wichtigsten Konzepte sitzen!';
+            } else if (percentage >= 60) {
+                emoji = '💪';
+                message = 'Solide Basis! Ein paar Details noch vertiefen.';
+            } else {
+                emoji = '📚';
+                message = 'Weiter üben! Linux-Wissen kommt mit der Praxis.';
+            }
+            
+            document.getElementById('result-emoji').textContent = emoji;
+            document.getElementById('result-message').textContent = message;
+            
+            // Add study tips
+            const studyTips = document.createElement('div');
+            studyTips.style.marginTop = '30px';
+            studyTips.style.padding = '20px';
+            studyTips.style.background = '#e3f2fd';
+            studyTips.style.borderRadius = '10px';
+            studyTips.innerHTML = `
+                <h3 style="color: #1565c0;">📖 Tipps zum Weiterlernen:</h3>
+                <ul style="text-align: left; display: inline-block; margin-top: 10px;">
+                    <li>Üben Sie täglich 15 Minuten in der Kommandozeile</li>
+                    <li>Nutzen Sie <code>man</code> Seiten zum Nachschlagen</li>
+                    <li>Erstellen Sie eigene Testumgebungen zum Experimentieren</li>
+                    <li>Dokumentieren Sie neue Befehle in einem persönlichen Cheat Sheet</li>
+                    <li>Arbeiten Sie die praktischen Übungen nochmal durch</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>Bereit für Woche 2: Dateiberechtigungen & Prozessmanagement! 🚀</strong></p>
+            `;
+            document.getElementById('results').appendChild(studyTips);
+        }
+    </script>
+</body>
+</html>
