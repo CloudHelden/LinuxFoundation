@@ -1,6 +1,7 @@
 # EC2 Ubuntu mit Nginx und Log-Analyse
 
 ## Aufgabe 1: EC2 Ubuntu Instanz mit Nginx starten
+Pro Team reicht eine EC2 Instanz, Ngnix Befehle können via Multipass lokal getestet werden.
 
 1. Melde dich bei AWS an.
 2. Starte eine EC2-Instanz.
@@ -19,7 +20,7 @@ Erstelle Befehle, um jeweils die Top 5 herauszufinden:
 * **Top 5 User Agents**
 
 ## Aufgabe 3: Ergebnisse per SNS verschicken
-![Ngnix](ngnix3.png)
+![Ngnix](ngnix2.png)
 1. Erstelle ein SNS Topic.
 2. Abonniere deine E-Mail-Adresse.
 3. Schicke die Ergebnisse der Log-Analyse als Nachricht an das SNS Topic.
@@ -31,7 +32,7 @@ Richte eine Automatisierung ein, die alle 10 Minuten die Log-Analyse durchführt
 ## Stufe 3: IP-Sperre im VPC
 ![Ngnix2](ngnix4.png)
 
-Nutze eine AWS-eigene Methode im VPC (z.B. Network ACLs, Security Groups oder AWS WAF), um die IP-Adresse mit den meisten Zugriffen zu sperren.
+Nutze eine AWS-eigene Methode im VPC, um die IP-Adresse mit den meisten Zugriffen zu sperren.
 
 ## Stufe 4: Ngnix Seiten sperren
 
