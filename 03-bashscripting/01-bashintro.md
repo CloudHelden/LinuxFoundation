@@ -37,6 +37,7 @@ Dieses Tutorial führt Schritt für Schritt in einfache Bash-Skripte unter Linux
 
 ## 3. Grundlagen: Variablen, Rechnen & Dateiumleitung
 
+
 ### 3.1 Variablen
 
 * Eine Variable speichert einen Wert unter einem Namen. Beispiel:
@@ -78,6 +79,8 @@ Dieses Tutorial führt Schritt für Schritt in einfache Bash-Skripte unter Linux
 ---
 
 ## 4. Übungen
+### 4.01 Neue Datein
+1. **Übung 1.0**: Erstelle ein Bashscript mit dem du 3 neue Datein erstellst die jeweils "Übung1.sh etc." heißen.
 
 ### 4.1 Echo-Befehle
 
