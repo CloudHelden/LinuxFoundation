@@ -47,7 +47,7 @@ Lasse das Skript den Wohnort des Nutzers abfragen und ihn mitecho begrüßen, z.
 
 echo "Wie ist dein Mac-Passwort?"
 sleep 1
-read pw
+read -s pw
 echo "Dein Passwort lautet: $pw"
 ```
 
