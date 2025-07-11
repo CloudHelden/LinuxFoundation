@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nginx Installation & Grundkonfiguration - Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-width: 900px;
+            width: 90%;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .quiz-header h1 {
+            color: #6366f1;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .nginx-logo {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .question-container {
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .question-container.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .question {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: #6366f1;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+
+        .options {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover {
+            background: #f3f4f6;
+            border-color: #6366f1;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: #eef2ff;
+            border-color: #8b5cf6;
+        }
+
+        .option.correct {
+            background: #e8f5e9;
+            border-color: #4CAF50;
+        }
+
+        .option.incorrect {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        .option-letter {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #6366f1;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        .option.correct .option-letter {
+            background: #4CAF50;
+        }
+
+        .option.incorrect .option-letter {
+            background: #f44336;
+        }
+
+        .code-option {
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 5px;
+            font-size: 0.9em;
+            overflow-x: auto;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-show {
+            background: #ff9800;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-show:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .btn-next {
+            background: #8b5cf6;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-next:hover {
+            background: #7c3aed;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-prev {
+            background: #757575;
+            color: white;
+        }
+
+        .btn-prev:hover {
+            background: #616161;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .explanation {
+            background: #f0f0ff;
+            border-left: 4px solid #8b5cf6;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .explanation.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .explanation h4 {
+            color: #6366f1;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .results {
+            text-align: center;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        .score {
+            font-size: 3em;
+            color: #4CAF50;
+            margin: 20px 0;
+        }
+
+        .emoji {
+            font-size: 4em;
+            margin: 20px 0;
+        }
+
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-screen h2 {
+            color: #6366f1;
+            margin-bottom: 20px;
+        }
+
+        .topic-list {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .topic-list h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .topic-list ul {
+            list-style-position: inside;
+            color: #555;
+        }
+
+        .topic-list li {
+            margin: 8px 0;
+        }
+
+        .btn-start {
+            background: #4CAF50;
+            color: white;
+            font-size: 1.3em;
+            padding: 15px 40px;
+            margin-top: 20px;
+        }
+
+        .btn-start:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .aws-note {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .aws-note strong {
+            color: #e65100;
+        }
+
+        @media (max-width: 600px) {
+            .quiz-container {
+                padding: 20px;
+            }
+
+            .quiz-header h1 {
+                font-size: 1.8em;
+            }
+
+            .question {
+                font-size: 1.1em;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="timer" id="timer">00:00</div>
+        
+        <div class="quiz-header">
+            <div class="nginx-logo">🌐</div>
+            <h1>Nginx Installation Quiz</h1>
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="start-screen">
+            <h2>Nginx Webserver auf AWS - Installation Quiz</h2>
+            <p>Testen Sie Ihr Wissen zur grundlegenden Nginx-Installation</p>
+            
+            <div class="topic-list">
+                <h3>📚 Themen:</h3>
+                <ul>
+                    <li>AWS EC2 Instance Grundlagen</li>
+                    <li>SSH-Verbindung und Sicherheit</li>
+                    <li>Linux Paketmanagement (apt)</li>
+                    <li>Nginx Installation und Grundkonfiguration</li>
+                    <li>Systemd Service-Management</li>
+                    <li>Dateiberechtigungen für Webserver</li>
+                    <li>Log-Analyse und Troubleshooting</li>
+                    <li>Firewall und Sicherheit</li>
+                </ul>
+            </div>
+
+            <div class="aws-note">
+                <strong>Hinweis:</strong> Dieses Quiz basiert auf der praktischen Übung "Nginx Webserver auf AWS einrichten".
+            </div>
+
+            <button class="btn-start" onclick="startQuiz()">Quiz starten! 🚀</button>
+        </div>
+
+        <!-- Quiz Content -->
+        <div id="quiz-content" style="display: none;">
+            <!-- Questions will be inserted here -->
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results" class="results">
+            <h2>Quiz abgeschlossen! 🎉</h2>
+            <div class="emoji" id="result-emoji"></div>
+            <div class="score" id="final-score">0/0</div>
+            <p id="result-message"></p>
+            <button class="btn-start" onclick="location.reload()">Nochmal spielen</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Welchen Instance-Typ empfiehlt die Übung für den Nginx-Webserver?",
+                options: [
+                    "t3.nano",
+                    "t2.micro",
+                    "t3.small",
+                    "t2.large"
+                ],
+                correct: 1,
+                explanation: "t2.micro ist Teil des AWS Free Tier und ausreichend für Lernzwecke und kleine Webserver. Kostenlos für das erste Jahr!"
+            },
+            {
+                question: "Welche Ports müssen in der AWS Security Group für einen Webserver geöffnet werden?",
+                options: [
+                    "Nur Port 22 (SSH)",
+                    "Port 22 (SSH) und Port 80 (HTTP)",
+                    "Port 80 (HTTP) und Port 443 (HTTPS)",
+                    "Alle Ports"
+                ],
+                correct: 1,
+                explanation: "Port 22 für SSH-Zugriff zum Verwalten des Servers und Port 80 für HTTP-Traffic zu den Webseiten. Port 443 wird später für HTTPS benötigt."
+            },
+            {
+                question: "Mit welchem Befehl setzt man die korrekten Berechtigungen für einen SSH-Key?",
+                options: [
+                    "chmod 644 mein-key.pem",
+                    "chmod 600 mein-key.pem",
+                    "chmod 400 mein-key.pem",
+                    "chmod 755 mein-key.pem"
+                ],
+                correct: 2,
+                explanation: "chmod 400 gibt nur dem Besitzer Leserechte. SSH-Keys müssen sehr restriktive Berechtigungen haben, sonst verweigert SSH die Verbindung aus Sicherheitsgründen."
+            },
+            {
+                question: "Warum führt man 'sudo apt update' vor 'sudo apt upgrade' aus?",
+                options: [
+                    "Das ist nicht notwendig",
+                    "update lädt Paketlisten, upgrade installiert Updates",
+                    "update ist schneller als upgrade",
+                    "upgrade funktioniert ohne update nicht"
+                ],
+                correct: 1,
+                explanation: "apt update lädt die neuesten Paketlisten von den Repositories. apt upgrade installiert dann Updates basierend auf diesen aktuellen Listen. Ohne update würde upgrade veraltete Informationen verwenden."
+            },
+            {
+                question: "Mit welchem Befehl installiert man Nginx auf Ubuntu?",
+                options: [
+                    "sudo yum install nginx",
+                    "sudo apt install nginx -y",
+                    "sudo snap install nginx",
+                    "sudo wget nginx && make install"
+                ],
+                correct: 1,
+                explanation: "apt ist der Standard-Paketmanager für Ubuntu/Debian. Das -y Flag beantwortet automatisch alle Fragen mit 'yes'."
+            },
+            {
+                question: "Was zeigt der Befehl 'nginx -v'?",
+                options: [
+                    "Die Nginx-Konfiguration",
+                    "Alle installierten Module",
+                    "Die installierte Nginx-Version",
+                    "Den Status des Nginx-Service"
+                ],
+                correct: 2,
+                explanation: "nginx -v zeigt nur die Versionsnummer. nginx -V (großes V) würde zusätzlich alle Compile-Optionen und Module anzeigen."
+            },
+            {
+                question: "Wo liegt die Hauptkonfigurationsdatei von Nginx?",
+                options: [
+                    "/etc/nginx/nginx.conf",
+                    "/var/www/nginx.conf",
+                    "/usr/local/nginx/nginx.conf",
+                    "/home/nginx/nginx.conf"
+                ],
+                correct: 0,
+                explanation: "/etc/nginx/nginx.conf ist die zentrale Konfigurationsdatei. Sie enthält globale Einstellungen und includet weitere Konfigurationsdateien."
+            },
+            {
+                question: "In welchem Verzeichnis liegen standardmäßig die Webseiten-Dateien?",
+                options: [
+                    "/home/www/",
+                    "/usr/share/nginx/",
+                    "/var/www/html/",
+                    "/etc/nginx/www/"
+                ],
+                correct: 2,
+                explanation: "/var/www/html/ ist das Standard-Document-Root für Webseiten unter Ubuntu. Hier liegt die index.html mit der 'Welcome to nginx!' Seite."
+            },
+            {
+                question: "Welcher Befehl startet den Nginx-Service neu?",
+                options: [
+                    "sudo nginx restart",
+                    "sudo systemctl restart nginx",
+                    "sudo service nginx start",
+                    "sudo reload nginx"
+                ],
+                correct: 1,
+                explanation: "systemctl ist das moderne Tool für Service-Management unter systemd. restart stoppt und startet den Service komplett neu."
+            },
+            {
+                question: "Was ist der Unterschied zwischen 'systemctl reload' und 'systemctl restart' bei Nginx?",
+                options: [
+                    "Kein Unterschied",
+                    "reload ist für SSL, restart für HTTP",
+                    "reload lädt Konfiguration neu ohne Verbindungsunterbrechung",
+                    "restart ist schneller"
+                ],
+                correct: 2,
+                explanation: "reload führt einen 'graceful restart' durch - neue Konfiguration wird geladen, aber bestehende Verbindungen bleiben aktiv. restart stoppt Nginx komplett."
+            },
+            {
+                question: "Wie prüft man den Status des Nginx-Service?",
+                options: [
+                    "sudo systemctl status nginx",
+                    "sudo nginx --status",
+                    "sudo ps nginx",
+                    "sudo service --status nginx"
+                ],
+                correct: 0,
+                explanation: "systemctl status nginx zeigt detaillierte Informationen: Laufzustand, Prozess-ID, letzte Log-Einträge und mehr."
+            },
+            {
+                question: "Als welcher Benutzer laufen die Nginx-Worker-Prozesse standardmäßig?",
+                options: [
+                    "root",
+                    "nginx",
+                    "www-data",
+                    "ubuntu"
+                ],
+                correct: 2,
+                explanation: "Der Master-Prozess läuft als root, aber die Worker-Prozesse laufen aus Sicherheitsgründen als unprivilegierter Benutzer 'www-data'."
+            },
+            {
+                question: "Wo findet man die Nginx-Access-Logs?",
+                options: [
+                    "/var/log/nginx/access.log",
+                    "/etc/nginx/logs/access.log",
+                    "/home/nginx/access.log",
+                    "/usr/log/nginx/access.log"
+                ],
+                correct: 0,
+                explanation: "/var/log/nginx/access.log protokolliert alle HTTP-Requests. Das Error-Log liegt in /var/log/nginx/error.log."
+            },
+            {
+                question: "Mit welchem Befehl kann man Logs in Echtzeit verfolgen?",
+                options: [
+                    "sudo cat /var/log/nginx/access.log",
+                    "sudo tail -f /var/log/nginx/access.log",
+                    "sudo head /var/log/nginx/access.log",
+                    "sudo grep nginx /var/log/access.log"
+                ],
+                correct: 1,
+                explanation: "tail -f zeigt die letzten Zeilen und folgt neuen Einträgen in Echtzeit. Perfekt zum Beobachten von Live-Traffic!"
+            },
+            {
+                question: "Welche Berechtigungen sollten Webseiten-Dateien haben?",
+                options: [
+                    "777 (alle Rechte für alle)",
+                    "644 (rw-r--r--)",
+                    "600 (rw-------)",
+                    "755 (rwxr-xr-x)"
+                ],
+                correct: 1,
+                explanation: "644 erlaubt dem Besitzer Lesen/Schreiben, anderen nur Lesen. Webdateien brauchen keine Ausführungsrechte. 777 wäre ein Sicherheitsrisiko!"
+            },
+            {
+                question: "Welcher Befehl testet eine Webseite lokal?",
+                options: [
+                    "ping localhost",
+                    "curl localhost",
+                    "wget localhost",
+                    "ssh localhost"
+                ],
+                correct: 1,
+                explanation: "curl localhost macht einen HTTP-Request an den lokalen Webserver und zeigt die Antwort. wget würde die Seite herunterladen."
+            },
+            {
+                question: "Was bedeutet der HTTP-Status-Code 200?",
+                options: [
+                    "Seite nicht gefunden",
+                    "Server-Fehler",
+                    "Anfrage erfolgreich",
+                    "Umleitung"
+                ],
+                correct: 2,
+                explanation: "200 OK bedeutet, dass die Anfrage erfolgreich bearbeitet wurde. 404 = nicht gefunden, 500 = Server-Fehler, 3xx = Umleitung."
+            },
+            {
+                question: "Wie aktiviert man die UFW-Firewall für HTTP-Traffic?",
+                options: [
+                    "sudo ufw enable http",
+                    "sudo ufw allow 'Nginx Full'",
+                    "sudo ufw open 80",
+                    "sudo firewall --allow nginx"
+                ],
+                correct: 1,
+                explanation: "ufw allow 'Nginx Full' öffnet sowohl Port 80 (HTTP) als auch Port 443 (HTTPS) für Nginx. Alternativ: ufw allow 80/tcp."
+            },
+            {
+                question: "Was passiert wenn man 'server_tokens off;' in nginx.conf setzt?",
+                options: [
+                    "Nginx startet nicht mehr",
+                    "Die Nginx-Version wird in HTTP-Headern versteckt",
+                    "SSL wird deaktiviert",
+                    "Logs werden ausgeschaltet"
+                ],
+                correct: 1,
+                explanation: "server_tokens off verhindert, dass Nginx seine Versionsnummer in HTTP-Response-Headern preisgibt. Eine einfache Sicherheitsmaßnahme."
+            },
+            {
+                question: "Welches Tool wurde in der Übung für Performance-Tests erwähnt?",
+                options: [
+                    "ab (Apache Bench)",
+                    "curl --benchmark",
+                    "nginx-test",
+                    "stress"
+                ],
+                correct: 0,
+                explanation: "Apache Bench (ab) ist ein einfaches Tool für HTTP-Load-Tests. Installiert mit: sudo apt install apache2-utils"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answerShown = false;
+        let selectedOption = null;
+        let startTime = Date.now();
+        let timerInterval;
+
+        function startQuiz() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('quiz-content').style.display = 'block';
+            startTimer();
+            showQuestion();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+            }, 1000);
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            const container = document.getElementById('quiz-content');
+            
+            let optionsHtml = q.options.map((opt, idx) => {
+                const isCode = opt.includes('/') || opt.includes('sudo') || opt.includes('-') || opt.includes('chmod');
+                return `
+                    <li class="option" onclick="selectOption(${idx})">
+                        <span class="option-letter">${String.fromCharCode(65 + idx)}</span>
+                        ${isCode ? `<code style="font-family: monospace; background: #f5f5f5; padding: 2px 5px; border-radius: 3px;">${opt}</code>` : opt}
+                    </li>
+                `;
+            }).join('');
+            
+            container.innerHTML = `
+                <div class="question-container active">
+                    <div class="question">
+                        <span class="question-number">Frage ${currentQuestion + 1} / ${questions.length}</span>
+                        ${q.question}
+                    </div>
+                    <ul class="options">
+                        ${optionsHtml}
+                    </ul>
+                    <div class="explanation" id="explanation">
+                        <h4>💡 Erklärung:</h4>
+                        <p>${q.explanation}</p>
+                    </div>
+                    <div class="buttons">
+                        <button class="btn-prev" onclick="previousQuestion()" ${currentQuestion === 0 ? 'disabled' : ''}>
+                            ← Zurück
+                        </button>
+                        <button class="btn-show" onclick="showAnswer()" id="show-btn">
+                            Lösung zeigen
+                        </button>
+                        <button class="btn-next" onclick="nextQuestion()" id="next-btn" disabled>
+                            Weiter →
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            updateProgress();
+            answerShown = false;
+            selectedOption = null;
+        }
+
+        function selectOption(idx) {
+            if (answerShown) return;
+            
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[idx].classList.add('selected');
+            selectedOption = idx;
+        }
+
+        function showAnswer() {
+            if (answerShown) return;
+            
+            answerShown = true;
+            const q = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            options[q.correct].classList.add('correct');
+            
+            if (selectedOption !== null && selectedOption !== q.correct) {
+                options[selectedOption].classList.add('incorrect');
+            } else if (selectedOption === q.correct) {
+                score++;
+            }
+            
+            document.getElementById('explanation').classList.add('show');
+            document.getElementById('show-btn').disabled = true;
+            document.getElementById('next-btn').disabled = false;
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function showResults() {
+            clearInterval(timerInterval);
+            document.getElementById('quiz-content').style.display = 'none';
+            document.getElementById('results').classList.add('show');
+            
+            const percentage = (score / questions.length) * 100;
+            document.getElementById('final-score').textContent = `${score} / ${questions.length}`;
+            
+            let emoji, message;
+            if (percentage >= 90) {
+                emoji = '🏆';
+                message = 'Exzellent! Sie sind bereit für fortgeschrittene Nginx-Konfiguration!';
+            } else if (percentage >= 70) {
+                emoji = '🎯';
+                message = 'Sehr gut! Die Nginx-Grundlagen sitzen fest!';
+            } else if (percentage >= 50) {
+                emoji = '💪';
+                message = 'Gute Basis! Mit etwas Übung werden Sie zum Webserver-Profi.';
+            } else {
+                emoji = '📖';
+                message: 'Übung macht den Meister! Wiederholen Sie die Installation nochmal.';
+            }
+            
+            document.getElementById('result-emoji').textContent = emoji;
+            document.getElementById('result-message').textContent = message;
+        }
+    </script>
+</body>
+</html>
