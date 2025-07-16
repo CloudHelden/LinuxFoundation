@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Essentials Prüfungs-Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .quiz-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .quiz-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .quiz-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .info-item {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            margin: 5px;
+        }
+        
+        .topic-selector {
+            padding: 30px;
+            background: #f8f9fa;
+            text-align: center;
+        }
+        
+        .topic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .topic-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .topic-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .topic-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .topic-weight {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .selected .topic-weight {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .quiz-content {
+            padding: 30px;
+            display: none;
+        }
+        
+        .question {
+            margin-bottom: 30px;
+            animation: fadeIn 0.5s;
+        }
+        
+        .question h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.3em;
+            line-height: 1.5;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .option:hover:not(.correct):not(.incorrect) {
+            background: #e8ecff;
+            border-color: #667eea;
+        }
+        
+        .option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .option.correct {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+        
+        .option.incorrect {
+            background: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+        
+        .option-letter {
+            font-weight: bold;
+            margin-right: 15px;
+            width: 30px;
+            height: 30px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .explanation {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            display: none;
+            animation: slideDown 0.3s;
+        }
+        
+        .explanation.show {
+            display: block;
+        }
+        
+        .quiz-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .progress-bar {
+            background: #e0e0e0;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.5s;
+            width: 0%;
+        }
+        
+        .results {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+        
+        .score-circle svg {
+            transform: rotate(-90deg);
+        }
+        
+        .score-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .score-label {
+            position: absolute;
+            top: 65%;
+            left: 50%;
+            transform: translate(-50%, 0);
+            font-size: 1.2em;
+            color: #666;
+        }
+        
+        .topic-results {
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .topic-result {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .topic-score {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .start-screen {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .difficulty-selector {
+            margin: 30px 0;
+        }
+        
+        .difficulty-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 15px 30px;
+            margin: 0 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .difficulty-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .difficulty-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 200px; }
+        }
+        
+        @media (max-width: 600px) {
+            .quiz-header h1 {
+                font-size: 1.8em;
+            }
+            
+            .topic-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quiz-controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <h1>Linux Essentials Quiz</h1>
+            <div class="quiz-info">
+                <div class="info-item">
+                    <span id="question-counter">Frage 1 von 10</span>
+                </div>
+                <div class="info-item">
+                    <span id="timer">00:00</span>
+                </div>
+                <div class="info-item">
+                    <span id="score">0 Punkte</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="start-screen" id="startScreen">
+            <h2>Willkommen zum Linux Essentials Quiz!</h2>
+            <p style="margin: 20px 0; color: #666;">
+                Testen Sie Ihr Wissen für die LPI Linux Essentials (010-160) Prüfung.
+                Wählen Sie Ihre gewünschten Themen und Schwierigkeitsgrad.
+            </p>
+            
+            <div class="difficulty-selector">
+                <h3>Schwierigkeitsgrad:</h3>
+                <button class="difficulty-btn selected" data-difficulty="easy">Einfach</button>
+                <button class="difficulty-btn" data-difficulty="medium">Mittel</button>
+                <button class="difficulty-btn" data-difficulty="hard">Schwer</button>
+            </div>
+        </div>
+        
+        <div class="topic-selector" id="topicSelector">
+            <h2>Themen auswählen:</h2>
+            <div class="topic-grid">
+                <div class="topic-btn" data-topic="1">
+                    <h3>Topic 1</h3>
+                    <p>Linux Community</p>
+                    <div class="topic-weight">7% der Prüfung</div>
+                </div>
+                <div class="topic-btn" data-topic="2">
+                    <h3>Topic 2</h3>
+                    <p>Finding Your Way</p>
+                    <div class="topic-weight">8% der Prüfung</div>
+                </div>
+                <div class="topic-btn" data-topic="3">
+                    <h3>Topic 3</h3>
+                    <p>Command Line</p>
+                    <div class="topic-weight">40% der Prüfung</div>
+                </div>
+                <div class="topic-btn" data-topic="4">
+                    <h3>Topic 4</h3>
+                    <p>Linux OS</p>
+                    <div class="topic-weight">20% der Prüfung</div>
+                </div>
+                <div class="topic-btn" data-topic="5">
+                    <h3>Topic 5</h3>
+                    <p>Security</p>
+                    <div class="topic-weight">25% der Prüfung</div>
+                </div>
+            </div>
+            <button class="btn" id="startQuizBtn" style="margin-top: 30px;">Quiz starten</button>
+        </div>
+        
+        <div class="quiz-content" id="quizContent">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="question" id="questionContainer">
+                <!-- Fragen werden hier eingefügt -->
+            </div>
+            
+            <div class="quiz-controls">
+                <button class="btn" id="prevBtn" disabled>Zurück</button>
+                <button class="btn" id="checkBtn">Antwort prüfen</button>
+                <button class="btn" id="nextBtn" style="display: none;">Nächste Frage</button>
+            </div>
+        </div>
+        
+        <div class="results" id="results">
+            <h2>Quiz beendet!</h2>
+            <div class="score-circle">
+                <svg width="200" height="200">
+                    <circle cx="100" cy="100" r="90" fill="none" stroke="#e0e0e0" stroke-width="20"/>
+                    <circle id="scoreCircle" cx="100" cy="100" r="90" fill="none" stroke="#667eea" stroke-width="20"
+                            stroke-dasharray="565.48" stroke-dashoffset="565.48"/>
+                </svg>
+                <div class="score-text" id="finalScore">0%</div>
+                <div class="score-label">Ergebnis</div>
+            </div>
+            
+            <div id="resultMessage"></div>
+            
+            <div class="topic-results" id="topicResults">
+                <!-- Topic-Ergebnisse werden hier eingefügt -->
+            </div>
+            
+            <button class="btn" onclick="location.reload()">Neues Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        // Fragen-Datenbank
+        const questions = {
+            1: { // Topic 1: Linux Community
+                easy: [
+                    {
+                        question: "Wer hat den Linux-Kernel ursprünglich entwickelt?",
+                        options: ["Richard Stallman", "Linus Torvalds", "Dennis Ritchie", "Ken Thompson"],
+                        correct: 1,
+                        explanation: "Linus Torvalds begann 1991 mit der Entwicklung des Linux-Kernels als Student in Helsinki."
+                    },
+                    {
+                        question: "Welche der folgenden ist eine Debian-basierte Distribution?",
+                        options: ["Fedora", "openSUSE", "Ubuntu", "Arch Linux"],
+                        correct: 2,
+                        explanation: "Ubuntu basiert auf Debian und ist eine der populärsten Linux-Distributionen."
+                    },
+                    {
+                        question: "Was bedeutet GPL?",
+                        options: ["General Public License", "Global Programming Language", "Generic Platform Linux", "Graphical Public Library"],
+                        correct: 0,
+                        explanation: "GPL steht für General Public License und ist die Lizenz unter der Linux veröffentlicht wird."
+                    }
+                ],
+                medium: [
+                    {
+                        question: "Welche Lizenz wird als 'viral' bezeichnet?",
+                        options: ["MIT", "BSD", "GPL", "Apache"],
+                        correct: 2,
+                        explanation: "Die GPL wird als 'viral' bezeichnet, weil abgeleitete Werke ebenfalls unter GPL stehen müssen."
+                    },
+                    {
+                        question: "Was ist der Hauptunterschied zwischen Free Software und Open Source?",
+                        options: ["Es gibt keinen Unterschied", "Free Software betont Freiheit, Open Source Praktikabilität", "Open Source ist immer kostenlos", "Free Software ist kommerziell"],
+                        correct: 1,
+                        explanation: "Free Software (FSF) betont ethische Freiheit, während Open Source (OSI) praktische Vorteile hervorhebt."
+                    }
+                ],
+                hard: [
+                    {
+                        question: "Welche Distribution verwendet NICHT systemd als Init-System?",
+                        options: ["Ubuntu 20.04", "Fedora 35", "Devuan", "openSUSE Leap"],
+                        correct: 2,
+                        explanation: "Devuan ist ein Debian-Fork, der explizit ohne systemd entwickelt wurde."
+                    }
+                ]
+            },
+            2: { // Topic 2: Finding Your Way
+                easy: [
+                    {
+                        question: "Welcher Befehl zeigt das aktuelle Verzeichnis an?",
+                        options: ["cd", "pwd", "ls", "dir"],
+                        correct: 1,
+                        explanation: "pwd (print working directory) zeigt das aktuelle Arbeitsverzeichnis an."
+                    },
+                    {
+                        question: "Wie wechseln Sie in Ihr Home-Verzeichnis?",
+                        options: ["cd /root", "cd ~", "cd home", "cd -"],
+                        correct: 1,
+                        explanation: "cd ~ oder einfach cd ohne Argument wechselt ins Home-Verzeichnis."
+                    },
+                    {
+                        question: "Welcher Befehl zeigt versteckte Dateien an?",
+                        options: ["ls -h", "ls -a", "ls -l", "ls -R"],
+                        correct: 1,
+                        explanation: "ls -a zeigt alle Dateien inklusive versteckter Dateien (die mit . beginnen)."
+                    }
+                ],
+                medium: [
+                    {
+                        question: "In welcher Section der man pages finden Sie Dateiformate?",
+                        options: ["1", "3", "5", "8"],
+                        correct: 2,
+                        explanation: "Section 5 der man pages dokumentiert Dateiformate und Konfigurationsdateien."
+                    },
+                    {
+                        question: "Was macht der Befehl 'which python3'?",
+                        options: ["Installiert Python3", "Zeigt die Python-Version", "Zeigt den Pfad zu python3", "Startet Python3"],
+                        correct: 2,
+                        explanation: "which zeigt den vollständigen Pfad zu einem ausführbaren Programm."
+                    }
+                ],
+                hard: [
+                    {
+                        question: "Welche Variable enthält die Liste der Verzeichnisse für ausführbare Programme?",
+                        options: ["$HOME", "$PATH", "$PWD", "$SHELL"],
+                        correct: 1,
+                        explanation: "$PATH enthält durch Doppelpunkt getrennte Verzeichnisse, in denen nach Programmen gesucht wird."
+                    }
+                ]
+            },
+            3: { // Topic 3: Command Line
+                easy: [
+                    {
+                        question: "Wie erstellen Sie ein neues Verzeichnis?",
+                        options: ["makedir", "mkdir", "newdir", "createdir"],
+                        correct: 1,
+                        explanation: "mkdir (make directory) erstellt neue Verzeichnisse."
+                    },
+                    {
+                        question: "Welcher Befehl kopiert Dateien?",
+                        options: ["mv", "cp", "copy", "dup"],
+                        correct: 1,
+                        explanation: "cp (copy) kopiert Dateien und Verzeichnisse."
+                    },
+                    {
+                        question: "Wie zeigen Sie die ersten 10 Zeilen einer Datei?",
+                        options: ["cat", "head", "tail", "first"],
+                        correct: 1,
+                        explanation: "head zeigt standardmäßig die ersten 10 Zeilen einer Datei."
+                    },
+                    {
+                        question: "Welches Wildcard-Zeichen steht für genau ein beliebiges Zeichen?",
+                        options: ["*", "?", "#", "%"],
+                        correct: 1,
+                        explanation: "? steht für genau ein beliebiges Zeichen, während * für beliebig viele steht."
+                    }
+                ],
+                medium: [
+                    {
+                        question: "Welcher Befehl erstellt ein komprimiertes tar-Archiv?",
+                        options: ["tar -xvf", "tar -cvf", "tar -czvf", "tar -tvf"],
+                        correct: 2,
+                        explanation: "tar -czvf erstellt (c) ein gzip-komprimiertes (z) Archiv mit ausführlicher Ausgabe (v)."
+                    },
+                    {
+                        question: "Wie finden Sie alle Zeilen die NICHT 'error' enthalten?",
+                        options: ["grep error file", "grep -v error file", "grep -i error file", "grep -n error file"],
+                        correct: 1,
+                        explanation: "grep -v invertiert die Suche und zeigt Zeilen die das Muster NICHT enthalten."
+                    },
+                    {
+                        question: "Was macht der Befehl 'sort file.txt | uniq'?",
+                        options: ["Sortiert und entfernt Duplikate", "Zählt eindeutige Zeilen", "Sortiert rückwärts", "Zeigt nur Duplikate"],
+                        correct: 0,
+                        explanation: "sort sortiert die Zeilen und uniq entfernt aufeinanderfolgende Duplikate."
+                    }
+                ],
+                hard: [
+                    {
+                        question: "Welche Option von tar behält Dateiberechtigungen beim Entpacken?",
+                        options: ["-p", "-P", "--preserve", "Ist Standard"],
+                        correct: 3,
+                        explanation: "tar behält standardmäßig Berechtigungen bei. -p ist bei einigen tar-Versionen für preserve-permissions."
+                    },
+                    {
+                        question: "Was ist die korrekte Syntax für eine for-Schleife in Bash?",
+                        options: ["for i in 1 2 3; do echo $i; done", "for (i=1; i<=3; i++)", "foreach i (1 2 3)", "for i = 1 to 3"],
+                        correct: 0,
+                        explanation: "Bash verwendet 'for variable in liste; do befehle; done' Syntax."
+                    }
+                ]
+            },
+            4: { // Topic 4: Linux OS
+                easy: [
+                    {
+                        question: "Welcher Befehl zeigt den freien Speicherplatz an?",
+                        options: ["du", "df", "free", "space"],
+                        correct: 1,
+                        explanation: "df (disk free) zeigt den freien Speicherplatz der Dateisysteme."
+                    },
+                    {
+                        question: "Wie zeigen Sie alle laufenden Prozesse an?",
+                        options: ["ps", "ps aux", "top", "proc"],
+                        correct: 1,
+                        explanation: "ps aux zeigt alle Prozesse aller Benutzer mit detaillierten Informationen."
+                    },
+                    {
+                        question: "Welcher Befehl zeigt die IP-Adresse an?",
+                        options: ["ipconfig", "ifconfig", "ip addr", "netstat"],
+                        correct: 2,
+                        explanation: "ip addr (oder ip a) ist der moderne Befehl zur Anzeige von Netzwerkinformationen."
+                    }
+                ],
+                medium: [
+                    {
+                        question: "Wo werden Kernel-Module gespeichert?",
+                        options: ["/lib/modules", "/etc/modules", "/usr/modules", "/kernel/modules"],
+                        correct: 0,
+                        explanation: "Kernel-Module werden unter /lib/modules/[kernel-version]/ gespeichert."
+                    },
+                    {
+                        question: "Welches Signal sendet 'kill -9'?",
+                        options: ["SIGTERM", "SIGKILL", "SIGSTOP", "SIGHUP"],
+                        correct: 1,
+                        explanation: "kill -9 sendet SIGKILL, das einen Prozess sofort beendet ohne Cleanup."
+                    }
+                ],
+                hard: [
+                    {
+                        question: "Was zeigt /proc/cpuinfo?",
+                        options: ["CPU-Auslastung", "CPU-Hardware-Informationen", "Prozess-CPU-Nutzung", "CPU-Temperatur"],
+                        correct: 1,
+                        explanation: "/proc/cpuinfo enthält detaillierte Informationen über die CPU-Hardware."
+                    }
+                ]
+            },
+            5: { // Topic 5: Security
+                easy: [
+                    {
+                        question: "Welche Berechtigung hat die Zahl 755?",
+                        options: ["rwxrwxrwx", "rwxr-xr-x", "rw-r--r--", "rwx------"],
+                        correct: 1,
+                        explanation: "755 bedeutet rwxr-xr-x (Besitzer: alle Rechte, Gruppe/Andere: lesen+ausführen)."
+                    },
+                    {
+                        question: "Welcher Befehl ändert das Passwort?",
+                        options: ["password", "passwd", "chpass", "pwd"],
+                        correct: 1,
+                        explanation: "passwd ist der Befehl zum Ändern des Benutzerpassworts."
+                    },
+                    {
+                        question: "Wie machen Sie eine Datei ausführbar?",
+                        options: ["chmod +x file", "chown +x file", "exec file", "run file"],
+                        correct: 0,
+                        explanation: "chmod +x fügt die Ausführungsberechtigung für alle Benutzer hinzu."
+                    }
+                ],
+                medium: [
+                    {
+                        question: "Was bedeutet das 's' in -rwsr-xr-x?",
+                        options: ["Sticky bit", "SUID bit", "SGID bit", "Special file"],
+                        correct: 1,
+                        explanation: "Das 's' an der Stelle des Besitzer-Execute-Bits zeigt das SUID-Bit an."
+                    },
+                    {
+                        question: "Welche UID hat der root-Benutzer?",
+                        options: ["1", "0", "1000", "999"],
+                        correct: 1,
+                        explanation: "Der root-Benutzer hat immer die UID 0."
+                    },
+                    {
+                        question: "Wo werden verschlüsselte Passwörter gespeichert?",
+                        options: ["/etc/passwd", "/etc/shadow", "/etc/passwords", "/etc/security"],
+                        correct: 1,
+                        explanation: "/etc/shadow enthält die verschlüsselten Passwörter und ist nur für root lesbar."
+                    }
+                ],
+                hard: [
+                    {
+                        question: "Was macht 'chmod 1777 /tmp'?",
+                        options: ["Setzt SUID", "Setzt SGID", "Setzt Sticky Bit", "Macht /tmp schreibgeschützt"],
+                        correct: 2,
+                        explanation: "1777 setzt das Sticky Bit (1) und Berechtigungen rwxrwxrwx. Im /tmp können so nur Besitzer ihre Dateien löschen."
+                    }
+                ]
+            }
+        };
+
+        // Quiz-Status
+        let currentQuestion = 0;
+        let selectedTopics = [];
+        let selectedDifficulty = 'easy';
+        let quizQuestions = [];
+        let userAnswers = [];
+        let score = 0;
+        let startTime;
+        let timerInterval;
+
+        // DOM-Elemente
+        const startScreen = document.getElementById('startScreen');
+        const topicSelector = document.getElementById('topicSelector');
+        const quizContent = document.getElementById('quizContent');
+        const results = document.getElementById('results');
+        const questionContainer = document.getElementById('questionContainer');
+        const progressFill = document.getElementById('progressFill');
+        const questionCounter = document.getElementById('question-counter');
+        const timerDisplay = document.getElementById('timer');
+        const scoreDisplay = document.getElementById('score');
+        const checkBtn = document.getElementById('checkBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+
+        // Event Listeners
+        document.querySelectorAll('.topic-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('selected');
+                updateSelectedTopics();
+            });
+        });
+
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedDifficulty = btn.dataset.difficulty;
+            });
+        });
+
+        document.getElementById('startQuizBtn').addEventListener('click', startQuiz);
+        checkBtn.addEventListener('click', checkAnswer);
+        nextBtn.addEventListener('click', nextQuestion);
+        prevBtn.addEventListener('click', prevQuestion);
+
+        function updateSelectedTopics() {
+            selectedTopics = Array.from(document.querySelectorAll('.topic-btn.selected'))
+                .map(btn => parseInt(btn.dataset.topic));
+        }
+
+        function startQuiz() {
+            if (selectedTopics.length === 0) {
+                alert('Bitte wählen Sie mindestens ein Thema aus!');
+                return;
+            }
+
+            // Fragen zusammenstellen
+            quizQuestions = [];
+            selectedTopics.forEach(topic => {
+                const topicQuestions = questions[topic][selectedDifficulty] || [];
+                quizQuestions.push(...topicQuestions.map(q => ({...q, topic})));
+            });
+
+            // Fragen mischen
+            quizQuestions.sort(() => Math.random() - 0.5);
+            
+            // Auf 10 Fragen begrenzen
+            quizQuestions = quizQuestions.slice(0, 10);
+            
+            // Quiz initialisieren
+            userAnswers = new Array(quizQuestions.length).fill(null);
+            currentQuestion = 0;
+            score = 0;
+            startTime = Date.now();
+            
+            // UI aktualisieren
+            startScreen.style.display = 'none';
+            topicSelector.style.display = 'none';
+            quizContent.style.display = 'block';
+            
+            // Timer starten
+            startTimer();
+            
+            // Erste Frage anzeigen
+            showQuestion();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function showQuestion() {
+            const question = quizQuestions[currentQuestion];
+            const isAnswered = userAnswers[currentQuestion] !== null;
+            
+            // Progress aktualisieren
+            progressFill.style.width = `${((currentQuestion + 1) / quizQuestions.length) * 100}%`;
+            questionCounter.textContent = `Frage ${currentQuestion + 1} von ${quizQuestions.length}`;
+            
+            // Frage anzeigen
+            let html = `
+                <h3>${question.question}</h3>
+                <div class="options">
+            `;
+            
+            question.options.forEach((option, index) => {
+                const letter = String.fromCharCode(65 + index); // A, B, C, D
+                let className = 'option';
+                
+                if (isAnswered) {
+                    if (index === question.correct) {
+                        className += ' correct';
+                    } else if (index === userAnswers[currentQuestion]) {
+                        className += ' incorrect';
+                    }
+                } else if (index === userAnswers[currentQuestion]) {
+                    className += ' selected';
+                }
+                
+                html += `
+                    <div class="${className}" data-index="${index}" ${!isAnswered ? 'onclick="selectOption(this)"' : ''}>
+                        <span class="option-letter">${letter}</span>
+                        <span>${option}</span>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            if (isAnswered && question.explanation) {
+                html += `
+                    <div class="explanation show">
+                        <strong>Erklärung:</strong> ${question.explanation}
+                    </div>
+                `;
+            }
+            
+            questionContainer.innerHTML = html;
+            
+            // Buttons aktualisieren
+            prevBtn.disabled = currentQuestion === 0;
+            
+            if (isAnswered) {
+                checkBtn.style.display = 'none';
+                nextBtn.style.display = 'inline-block';
+                nextBtn.textContent = currentQuestion === quizQuestions.length - 1 ? 'Ergebnisse' : 'Nächste Frage';
+            } else {
+                checkBtn.style.display = 'inline-block';
+                nextBtn.style.display = 'none';
+                checkBtn.disabled = userAnswers[currentQuestion] === null;
+            }
+        }
+
+        function selectOption(element) {
+            document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            userAnswers[currentQuestion] = parseInt(element.dataset.index);
+            checkBtn.disabled = false;
+        }
+
+        function checkAnswer() {
+            const question = quizQuestions[currentQuestion];
+            if (userAnswers[currentQuestion] === question.correct) {
+                score++;
+                scoreDisplay.textContent = `${score} Punkte`;
+            }
+            showQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < quizQuestions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        function showResults() {
+            clearInterval(timerInterval);
+            
+            quizContent.style.display = 'none';
+            results.style.display = 'block';
+            
+            const percentage = Math.round((score / quizQuestions.length) * 100);
+            document.getElementById('finalScore').textContent = `${percentage}%`;
+            
+            // Animierter Score-Kreis
+            const circle = document.getElementById('scoreCircle');
+            const circumference = 2 * Math.PI * 90;
+            const offset = circumference - (percentage / 100) * circumference;
+            
+            setTimeout(() => {
+                circle.style.strokeDashoffset = offset;
+                circle.style.transition = 'stroke-dashoffset 1s ease-in-out';
+            }, 100);
+            
+            // Ergebnis-Nachricht
+            let message = '';
+            if (percentage >= 80) {
+                message = '<h3 style="color: #4caf50;">Ausgezeichnet! 🎉</h3><p>Sie sind bereit für die Prüfung!</p>';
+            } else if (percentage >= 60) {
+                message = '<h3 style="color: #ff9800;">Gut gemacht! 👍</h3><p>Noch etwas Übung und Sie sind bereit!</p>';
+            } else {
+                message = '<h3 style="color: #f44336;">Weiter üben! 💪</h3><p>Wiederholen Sie die Themen und versuchen Sie es erneut.</p>';
+            }
+            document.getElementById('resultMessage').innerHTML = message;
+            
+            // Topic-Ergebnisse
+            const topicScores = {};
+            quizQuestions.forEach((q, i) => {
+                if (!topicScores[q.topic]) {
+                    topicScores[q.topic] = { correct: 0, total: 0 };
+                }
+                topicScores[q.topic].total++;
+                if (userAnswers[i] === q.correct) {
+                    topicScores[q.topic].correct++;
+                }
+            });
+            
+            const topicNames = {
+                1: 'Linux Community',
+                2: 'Finding Your Way',
+                3: 'Command Line',
+                4: 'Linux OS',
+                5: 'Security'
+            };
+            
+            let topicHtml = '<h3>Ergebnisse nach Thema:</h3>';
+            Object.entries(topicScores).forEach(([topic, scores]) => {
+                const topicPercentage = Math.round((scores.correct / scores.total) * 100);
+                topicHtml += `
+                    <div class="topic-result">
+                        <span>${topicNames[topic]}</span>
+                        <span class="topic-score">${scores.correct}/${scores.total} (${topicPercentage}%)</span>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('topicResults').innerHTML = topicHtml;
+        }
+    </script>
+</body>
+</html>
