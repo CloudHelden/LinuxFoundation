@@ -139,10 +139,6 @@ nav:
 theme:
   name: material  # Erfordert: pipx install mkdocs-material
 
-markdown_extensions:
-  - toc:
-      permalink: true
-  - codehilite
 ```
 
 ---
